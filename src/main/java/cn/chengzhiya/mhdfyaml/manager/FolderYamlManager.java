@@ -94,10 +94,20 @@ public abstract class FolderYamlManager {
     /**
      * 获取配置实例
      *
-     * @param file 文件名称
+     * @param file 文件实例
      * @return 配置实例
      */
-    public YamlConfiguration getData(String file) {
-        return this.getFileHashMap().get(new File(this.getFolder(), file));
+    public YamlConfiguration getData(File file) {
+        return this.getFileHashMap().get(file);
+    }
+
+    /**
+     * 获取配置实例
+     *
+     * @param path 文件路径
+     * @return 配置实例
+     */
+    public YamlConfiguration getData(String path) {
+        return this.getData(new File(this.getFolder(), path));
     }
 }
