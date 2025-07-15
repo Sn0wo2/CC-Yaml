@@ -13,7 +13,10 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
+import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -120,5 +123,25 @@ public final class FileManager {
             }
             Files.copy(in, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
+    }
+
+
+    /**
+     * 获取一个目录下所有的文件实例列表
+     *
+     * @param directory 目录实例
+     * @return 文件实例列表
+     */
+    public List<File> listFiles(File directory) {
+        List<File> files = new ArrayList<>();
+        for (File file : Objects.requireNonNull(directory.listFiles())) {
+            if (file.isFile()) {
+                files.add(file);
+            } else if (file.isDirectory()) {
+                files.addAll(listFiles(file));
+            }
+        }
+
+        return files;
     }
 }

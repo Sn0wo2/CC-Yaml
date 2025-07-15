@@ -67,7 +67,7 @@ public abstract class FolderYamlManager {
      */
     public void reload() {
         Map<File, YamlConfiguration> fileHashMap = new ConcurrentHashMap<>();
-        for (File file : Objects.requireNonNull(this.getFolder().listFiles())) {
+        for (File file : this.getInstance().getFileManager().listFiles(this.getFolder())) {
             fileHashMap.put(file, YamlConfiguration.loadConfiguration(file));
         }
         this.setFileHashMap(fileHashMap);
