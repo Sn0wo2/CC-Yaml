@@ -2,6 +2,7 @@ package cn.chengzhiya.mhdfyaml.manager;
 
 import cn.chengzhiya.mhdfyaml.MHDFYaml;
 import cn.chengzhiya.mhdfyaml.exception.ResourceException;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,7 +13,14 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
+@Getter
 public final class FileManager {
+    private final MHDFYaml instance;
+
+    public FileManager(MHDFYaml instance) {
+        this.instance = instance;
+    }
+
     /**
      * 保存资源
      *
@@ -22,12 +30,12 @@ public final class FileManager {
      */
     @SneakyThrows
     public void saveResource(@NotNull String filePath, @NotNull String resourcePath, boolean replace) {
-        File file = new File(MHDFYaml.instance.getPlugin().getDataFolder(), filePath);
+        File file = new File(this.getInstance().getPlugin().getDataFolder(), filePath);
         if (file.exists() && !replace) {
             return;
         }
 
-        URL url = MHDFYaml.instance.getPlugin().getClass().getClassLoader().getResource(resourcePath);
+        URL url = this.getInstance().getPlugin().getClass().getClassLoader().getResource(resourcePath);
         if (url == null) {
             throw new ResourceException("找不到资源: " + resourcePath);
         }

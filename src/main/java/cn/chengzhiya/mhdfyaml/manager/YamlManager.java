@@ -19,7 +19,12 @@ import java.util.Set;
 
 @Getter
 public abstract class YamlManager {
+    private final MHDFYaml instance;
     private YamlConfiguration data;
+
+    public YamlManager(MHDFYaml instance) {
+        this.instance = instance;
+    }
 
     /**
      * 获取源文件路径
@@ -41,14 +46,14 @@ public abstract class YamlManager {
      * @return 文件实例
      */
     public File getFile() {
-        return new File(MHDFYaml.instance.getPlugin().getDataFolder(), getFilePath());
+        return new File(this.getInstance().getPlugin().getDataFolder(), getFilePath());
     }
 
     /**
      * 保存默认文件
      */
     public void saveDefaultFile() {
-        MHDFYaml.instance.getFileManager().saveResource(this.getOriginFilePath(), getFilePath(), false);
+        this.getInstance().getFileManager().saveResource(this.getOriginFilePath(), getFilePath(), false);
     }
 
     /**
@@ -56,14 +61,14 @@ public abstract class YamlManager {
      */
     @SneakyThrows
     public void update() {
-        String version = MHDFYaml.instance.getPlugin().getDescription().getVersion();
+        String version = this.getInstance().getPlugin().getDescription().getVersion();
         String configVersion = this.getData().getString("configVersion");
 
         if (configVersion != null && configVersion.equals(version)) {
             return;
         }
 
-        URL url = MHDFYaml.instance.getPlugin().getClass().getClassLoader().getResource(this.getOriginFilePath());
+        URL url = this.getInstance().getPlugin().getClass().getClassLoader().getResource(this.getOriginFilePath());
         if (url == null) {
             return;
         }
@@ -129,8 +134,8 @@ public abstract class YamlManager {
             // 防止破坏横向格式
             YamlConfigurationOptions options = this.getData().options();
             options.width(Integer.MAX_VALUE);
-            MHDFYaml.instance.getReflectionManager().setFieldValue(
-                    MHDFYaml.instance.getReflectionManager().getField(MemoryConfiguration.class, "options", true),
+            this.getInstance().getReflectionManager().setFieldValue(
+                    this.getInstance().getReflectionManager().getField(MemoryConfiguration.class, "options", true),
                     originConfig,
                     options
             );
