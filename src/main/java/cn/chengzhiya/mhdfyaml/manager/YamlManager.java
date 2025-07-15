@@ -46,14 +46,14 @@ public abstract class YamlManager {
      * @return 文件实例
      */
     public File getFile() {
-        return new File(this.getInstance().getPlugin().getDataFolder(), getFilePath());
+        return new File(this.getInstance().getPlugin().getDataFolder(), this.getFilePath());
     }
 
     /**
      * 保存默认文件
      */
     public void saveDefaultFile() {
-        this.getInstance().getFileManager().saveResource(this.getOriginFilePath(), getFilePath(), false);
+        this.getInstance().getFileManager().saveResource(this.getOriginFilePath(), this.getFilePath(), false);
     }
 
     /**
