@@ -57,6 +57,14 @@ public abstract class YamlManager {
     }
 
     /**
+     * 保存文件
+     */
+    @SneakyThrows
+    public void save() {
+        this.getData().save(this.getFile());
+    }
+
+    /**
      * 更新配置
      */
     @SneakyThrows
