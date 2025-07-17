@@ -7,6 +7,7 @@ import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.JarURLConnection;
 import java.net.URL;
@@ -16,8 +17,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Objects;
-import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 @Getter
@@ -29,66 +28,69 @@ public final class FileManager {
     }
 
     /**
-     * 检查指定目录是否为文件夹
+     * 格式化路径
      *
-     * @param loader 类加载器实例
-     * @param path   路径
-     * @return 结果
+     * @param path 路径
+     * @return 格式化后的路径
      */
-    private boolean isDirectoryResource(ClassLoader loader, String path) {
-        String dirPath = path.endsWith("/") ? path : path + "/";
-        URL url = loader.getResource(dirPath);
-
-        return url != null && url.getProtocol().equals("jar");
+    public String formatPath(String path) {
+        return path.replace("\\", "/");
     }
-
-    /**
-     * 复制目录文件
-     *
-     * @param loader       类加载器实例
-     * @param resourcePath 资源路径
-     * @param filePath     文件路径实例
-     * @param replace      替换文件
-     */
-    @SneakyThrows
-    private void copyDirectory(ClassLoader loader, String resourcePath, Path filePath, boolean replace) {
-        String dirPath = resourcePath.endsWith("/") ? resourcePath : resourcePath + "/";
-
-        try (InputStream stream = loader.getResourceAsStream(dirPath)) {
-            if (stream == null) {
-                return;
-            }
-
-            Enumeration<URL> resources = loader.getResources(dirPath);
-            while (resources.hasMoreElements()) {
-                URL jarUrl = resources.nextElement();
-                try (JarFile jar = ((JarURLConnection) jarUrl.openConnection()).getJarFile()) {
-                    jar.stream()
-                            .filter(entry -> entry.getName().startsWith(resourcePath) && !entry.isDirectory())
-                            .forEach(entry -> this.copyJarEntry(jar, entry, filePath, replace));
-                }
-            }
-        }
-    }
-
 
     /**
      * 复制文件
      *
-     * @param jar      插件jar文件实例
-     * @param entry    文件实例
+     * @param in       输入流
      * @param filePath 文件路径实例
      * @param replace  替换文件
      */
     @SneakyThrows
-    private void copyJarEntry(JarFile jar, JarEntry entry, Path filePath, boolean replace) {
+    private void copyFile(InputStream in, Path filePath, boolean replace) {
         if (Files.exists(filePath) && !replace) {
             return;
         }
-        Files.createDirectories(filePath.getParent());
 
-        try (InputStream in = jar.getInputStream(entry)) {
-            Files.copy(in, filePath, StandardCopyOption.REPLACE_EXISTING);
+        Files.createDirectories(filePath.getParent());
+        Files.copy(in, filePath, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    /**
+     * 保存文件夹资源
+     *
+     * @param resourceFolderPath 资源文件夹目录
+     * @param fileFolderPath     保存文件夹目录
+     * @param replace            替换文件
+     */
+    @SneakyThrows
+    public void saveFolderResource(@NotNull String resourceFolderPath, @NotNull String fileFolderPath, boolean replace) {
+        resourceFolderPath = this.formatPath(resourceFolderPath);
+        resourceFolderPath = resourceFolderPath.endsWith("/") ? resourceFolderPath : resourceFolderPath + "/";
+        fileFolderPath = this.formatPath(fileFolderPath);
+        fileFolderPath = fileFolderPath.endsWith("/") ? fileFolderPath : fileFolderPath + "/";
+
+        ClassLoader loader = this.getInstance().getPlugin().getClass().getClassLoader();
+        URL folderUrl = loader.getResource(resourceFolderPath);
+        if (folderUrl == null) {
+            throw new ResourceException("找不到资源文件夹: " + resourceFolderPath);
+        }
+
+        Enumeration<URL> resources = loader.getResources(resourceFolderPath);
+        while (resources.hasMoreElements()) {
+            URL resourceUrl = resources.nextElement();
+            try (JarFile jar = ((JarURLConnection) resourceUrl.openConnection()).getJarFile()) {
+                String finalResourceFolderPath = resourceFolderPath;
+                String finalFileFolderPath = fileFolderPath;
+                jar.stream()
+                        .filter(entry -> this.formatPath(entry.getName()).startsWith(finalResourceFolderPath) && !entry.isDirectory())
+                        .forEach(entry -> {
+                            try {
+                                File target = new File(this.getInstance().getPlugin().getDataFolder(), entry.toString().replaceFirst(finalResourceFolderPath, finalFileFolderPath));
+                                this.copyFile(jar.getInputStream(entry), target.toPath(), replace);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+            }
         }
     }
 
@@ -101,10 +103,10 @@ public final class FileManager {
      */
     @SneakyThrows
     public void saveResource(@NotNull String resourcePath, @NotNull String filePath, boolean replace) {
+        resourcePath = this.formatPath(resourcePath);
+        filePath = this.formatPath(filePath);
+
         File target = new File(this.getInstance().getPlugin().getDataFolder(), filePath);
-        if (target.exists() && !replace) {
-            return;
-        }
 
         ClassLoader loader = this.getInstance().getPlugin().getClass().getClassLoader();
         URL resourceUrl = loader.getResource(resourcePath);
@@ -112,16 +114,8 @@ public final class FileManager {
             throw new ResourceException("找不到资源: " + resourcePath);
         }
 
-        if (this.isDirectoryResource(loader, resourcePath)) {
-            this.copyDirectory(loader, resourcePath, target.toPath(), replace);
-        }
-
-        Files.createDirectories(target.getParentFile().toPath());
         try (InputStream in = loader.getResourceAsStream(resourcePath)) {
-            if (in == null) {
-                throw new ResourceException("无法读取资源: " + resourcePath);
-            }
-            Files.copy(in, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            this.copyFile(in, target.toPath(), replace);
         }
     }
 
@@ -133,15 +127,23 @@ public final class FileManager {
      * @return 文件实例列表
      */
     public List<File> listFiles(File directory) {
+        if (directory == null || !directory.exists() || !directory.isDirectory()) {
+            return new ArrayList<>();
+        }
+
+        File[] fileArray = directory.listFiles();
+        if (fileArray == null) {
+            return new ArrayList<>();
+        }
+
         List<File> files = new ArrayList<>();
-        for (File file : Objects.requireNonNull(directory.listFiles())) {
+        for (File file : fileArray) {
             if (file.isFile()) {
                 files.add(file);
             } else if (file.isDirectory()) {
                 files.addAll(listFiles(file));
             }
         }
-
         return files;
     }
 }

@@ -8,7 +8,10 @@ import lombok.SneakyThrows;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
@@ -49,7 +52,7 @@ public abstract class FolderYamlManager {
      * 保存默认文件
      */
     public void saveDefaultFile() {
-        this.getInstance().getFileManager().saveResource(this.getOriginFolderPath(), this.getFolderPath(), false);
+        this.getInstance().getFileManager().saveFolderResource(this.getOriginFolderPath(), this.getFolderPath(), false);
     }
 
     /**
