@@ -101,6 +101,9 @@ public abstract class FolderYamlManager {
      * @return 配置实例
      */
     public YamlConfiguration getData(File file) {
+        if (file == null) {
+            return null;
+        }
         return this.getFileHashMap().get(file);
     }
 
@@ -111,6 +114,9 @@ public abstract class FolderYamlManager {
      * @return 配置实例
      */
     public YamlConfiguration getData(String path) {
+        if (path == null) {
+            return null;
+        }
         return this.getData(new File(this.getFolder(), path));
     }
 }
