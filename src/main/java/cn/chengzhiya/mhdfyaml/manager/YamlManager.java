@@ -155,8 +155,18 @@ public abstract class YamlManager {
     /**
      * 重载配置
      */
-    public void reload() {
+    public void reload(boolean update) {
+        if (update) {
+            this.update();
+        }
         this.data = YamlConfiguration.loadConfiguration(this.getFile());
+    }
+
+    /**
+     * 重载配置
+     */
+    public void reload() {
+        this.reload(false);
     }
 
     /**
