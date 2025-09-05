@@ -70,7 +70,7 @@ public abstract class YamlManager {
     @SneakyThrows
     public void update() {
         String version = this.getInstance().getPlugin().getDescription().getVersion();
-        String configVersion = this.getData().getString("configVersion");
+        String configVersion = this.getData().getString(this.getInstance().getConfigVersionKey());
 
         if (configVersion != null && configVersion.equals(version)) {
             return;
@@ -137,7 +137,7 @@ public abstract class YamlManager {
                 }
             }
 
-            this.getData().set("configVersion", version);
+            this.getData().set(this.getInstance().getConfigVersionKey(), version);
 
             // 防止破坏横向格式
             YamlConfigurationOptions options = this.getData().options();
