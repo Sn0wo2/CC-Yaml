@@ -2,9 +2,7 @@ package cn.chengzhiya.mhdfyaml.manager;
 
 import cn.chengzhiya.mhdfyaml.MHDFYaml;
 import cn.chengzhiya.mhdfyaml.exception.ResourceException;
-import lombok.Getter;
 import lombok.SneakyThrows;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,14 +17,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarFile;
 
-@Getter
-public final class FileManager {
-    private final MHDFYaml instance;
-
-    public FileManager(MHDFYaml instance) {
-        this.instance = instance;
-    }
-
+public record FileManager(MHDFYaml instance) {
     /**
      * 格式化路径
      *
@@ -62,13 +53,13 @@ public final class FileManager {
      * @param replace            替换文件
      */
     @SneakyThrows
-    public void saveFolderResource(@NotNull String resourceFolderPath, @NotNull String fileFolderPath, boolean replace) {
+    public void saveFolderResource(String resourceFolderPath, String fileFolderPath, boolean replace) {
         resourceFolderPath = this.formatPath(resourceFolderPath);
         resourceFolderPath = resourceFolderPath.endsWith("/") ? resourceFolderPath : resourceFolderPath + "/";
         fileFolderPath = this.formatPath(fileFolderPath);
         fileFolderPath = fileFolderPath.endsWith("/") ? fileFolderPath : fileFolderPath + "/";
 
-        ClassLoader loader = this.getInstance().getPlugin().getClass().getClassLoader();
+        ClassLoader loader = this.instance().getClassLoader();
         URL folderUrl = loader.getResource(resourceFolderPath);
         if (folderUrl == null) {
             throw new ResourceException("找不到资源文件夹: " + resourceFolderPath);
@@ -84,7 +75,7 @@ public final class FileManager {
                         .filter(entry -> this.formatPath(entry.getName()).startsWith(finalResourceFolderPath) && !entry.isDirectory())
                         .forEach(entry -> {
                             try {
-                                File target = new File(this.getInstance().getPlugin().getDataFolder(), entry.toString().replaceFirst(finalResourceFolderPath, finalFileFolderPath));
+                                File target = new File(this.instance().getParentFile(), entry.toString().replaceFirst(finalResourceFolderPath, finalFileFolderPath));
                                 this.copyFile(jar.getInputStream(entry), target.toPath(), replace);
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
@@ -102,13 +93,13 @@ public final class FileManager {
      * @param replace      替换文件
      */
     @SneakyThrows
-    public void saveResource(@NotNull String resourcePath, @NotNull String filePath, boolean replace) {
+    public void saveResource(String resourcePath, String filePath, boolean replace) {
         resourcePath = this.formatPath(resourcePath);
         filePath = this.formatPath(filePath);
 
-        File target = new File(this.getInstance().getPlugin().getDataFolder(), filePath);
+        File target = new File(this.instance().getParentFile(), filePath);
 
-        ClassLoader loader = this.getInstance().getPlugin().getClass().getClassLoader();
+        ClassLoader loader = this.instance().getClassLoader();
         URL resourceUrl = loader.getResource(resourcePath);
         if (resourceUrl == null) {
             throw new ResourceException("找不到资源: " + resourcePath);
@@ -141,7 +132,7 @@ public final class FileManager {
             if (file.isFile()) {
                 files.add(file);
             } else if (file.isDirectory()) {
-                files.addAll(listFiles(file));
+                files.addAll(this.listFiles(file));
             }
         }
         return files;
