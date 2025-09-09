@@ -1,0 +1,235 @@
+package cn.chengzhiya.mhdfyaml.configuration.yaml;
+
+import cn.chengzhiya.mhdfyaml.configuration.MemoryConfiguration;
+import cn.chengzhiya.mhdfyaml.configuration.SectionData;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.comments.CommentLine;
+import org.yaml.snakeyaml.comments.CommentType;
+import org.yaml.snakeyaml.nodes.*;
+import org.yaml.snakeyaml.representer.Representer;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+public class YamlConfiguration extends MemoryConfiguration {
+    public final LoaderOptions loaderOptions = new LoaderOptions();
+    public final DumperOptions dumperOptions = new DumperOptions();
+    private final YamlConstructor constructor;
+    private final Representer representer;
+    private final Yaml yaml;
+    public List<String> headerComment = new ArrayList<>();
+    public List<String> footerComment = new ArrayList<>();
+
+    /**
+     * YamlConfiguration 的构造函数, 用于初始化 YAML 解析器和相关配置
+     */
+    public YamlConfiguration() {
+        super(null, "");
+
+        this.loaderOptions.setMaxAliasesForCollections(Integer.MAX_VALUE);
+        this.loaderOptions.setCodePointLimit(Integer.MAX_VALUE);
+        this.loaderOptions.setNestingDepthLimit(100);
+        this.loaderOptions.setProcessComments(true);
+
+        this.dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        this.dumperOptions.setWidth(Integer.MAX_VALUE);
+        this.dumperOptions.setProcessComments(true);
+        this.dumperOptions.setPrettyFlow(true);
+        this.dumperOptions.setIndent(2);
+
+        this.constructor = new YamlConstructor(this.loaderOptions);
+        this.representer = new Representer(this.dumperOptions);
+        this.yaml = new Yaml(this.constructor, this.representer, this.dumperOptions, this.loaderOptions);
+    }
+
+    /**
+     * 从 Reader 加载配置文件
+     *
+     * @param reader 配置文件读取实例
+     * @return 加载完成的 YamlConfiguration 实例
+     */
+    public static YamlConfiguration loadConfiguration(Reader reader) {
+        YamlConfiguration configuration = new YamlConfiguration();
+        MappingNode node = (MappingNode) configuration.yaml.compose(reader);
+        if (node != null) {
+            configuration.headerComment = configuration.getCommentLines(node.getBlockComments());
+            configuration.footerComment = configuration.getCommentLines(node.getEndComments());
+            configuration.data = configuration.mappingNodeToSectionData(node);
+        }
+        return configuration;
+    }
+
+    /**
+     * 从 InputStream 加载配置文件
+     *
+     * @param inputStream 配置文件输入流实例
+     * @return 加载完成的 YamlConfiguration 实例
+     */
+    public static YamlConfiguration loadConfiguration(InputStream inputStream) {
+        try (InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
+            return YamlConfiguration.loadConfiguration(reader);
+        } catch (IOException e) {
+            throw new RuntimeException("无法从输入流加载 YAML", e);
+        }
+    }
+
+    /**
+     * 从 File 加载配置文件
+     *
+     * @param file 配置文件文件实例
+     * @return 加载完成的 YamlConfiguration 实例
+     * @throws IOException 如果文件读取失败
+     */
+    public static YamlConfiguration loadConfiguration(File file) throws IOException {
+        if (!file.exists()) throw new FileNotFoundException("找不到文件: " + file.getPath());
+
+        try (FileInputStream fis = new FileInputStream(file)) {
+            return YamlConfiguration.loadConfiguration(fis);
+        }
+    }
+
+    /**
+     * 将 SnakeYAML 的 CommentLine 列表转换为字符串列表
+     *
+     * @param comments CommentLine 列表
+     * @return 字符串注释列表
+     */
+    private List<String> getCommentLines(List<CommentLine> comments) {
+        if (comments == null) return new ArrayList<>();
+
+        List<String> lines = new ArrayList<>();
+        for (CommentLine comment : comments) {
+            String line = comment.getValue();
+            // 如果不是空行, 则去除前导空格, 否则添加 null 以表示空行
+            lines.add(comment.getCommentType() != CommentType.BLANK_LINE ?
+                    (line.startsWith(" ") ? line.substring(1) : line) : null
+            );
+        }
+        return lines;
+    }
+
+    /**
+     * 将字符串注释列表转换为 SnakeYAML 的 CommentLine 列表
+     *
+     * @param comments    字符串注释列表
+     * @param commentType 注释类型 (BLOCK, IN_LINE)
+     * @return CommentLine 列表
+     */
+    private List<CommentLine> getCommentLines(List<String> comments, CommentType commentType) {
+        List<CommentLine> lines = new ArrayList<>();
+        for (String comment : comments) {
+            // null 或空字符串表示一个空行注释
+            lines.add(new CommentLine(
+                    null,
+                    null,
+                    comment == null ? "" : " " + comment,
+                    commentType
+            ));
+        }
+        return lines;
+    }
+
+    /**
+     * 将 SnakeYAML 的 MappingNode 递归转换为 SectionData 结构
+     *
+     * @param root MappingNode 根节点
+     * @return 转换后的 SectionData
+     */
+    private SectionData mappingNodeToSectionData(MappingNode root) {
+        Map<String, SectionData> map = new LinkedHashMap<>();
+        if (root == null) return new SectionData(map);
+
+        this.constructor.flattenMapping(root);
+        for (NodeTuple tuple : root.getValue()) {
+            String keyString = String.valueOf(this.constructor.construct(tuple.getKeyNode()));
+            Node valueNode = tuple.getValueNode();
+
+            // 处理锚点
+            while (valueNode instanceof AnchorNode) {
+                valueNode = ((AnchorNode) valueNode).getRealNode();
+            }
+
+            SectionData sectionData;
+            if (valueNode instanceof MappingNode mappingNode)
+                sectionData = this.mappingNodeToSectionData(mappingNode);
+            else sectionData = new SectionData(this.constructor.construct(valueNode));
+
+            // 读取注释
+            sectionData.setCommentList(this.getCommentLines(tuple.getKeyNode().getBlockComments()));
+            if (valueNode instanceof MappingNode || valueNode instanceof SequenceNode)
+                sectionData.setInlineCommentList(this.getCommentLines(tuple.getKeyNode().getInLineComments()));
+            else sectionData.setInlineCommentList(this.getCommentLines(valueNode.getInLineComments()));
+
+
+            map.put(keyString, sectionData);
+        }
+
+        return new SectionData(map);
+    }
+
+    /**
+     * 将包含 SectionData 的 Map 递归转换为 SnakeYAML 的 MappingNode
+     *
+     * @param map 包含 SectionData 的 Map
+     * @return 转换后的 MappingNode
+     */
+    private MappingNode mapToMappingNode(Map<String, SectionData> map) {
+        List<NodeTuple> tupleList = new ArrayList<>();
+
+        for (Map.Entry<String, SectionData> entry : map.entrySet()) {
+            Node keyNode = this.representer.represent(entry.getKey());
+            Node valueNode;
+
+            SectionData sectionData = entry.getValue();
+            Object data = sectionData.getData();
+            if (data instanceof Map<?, ?> v) // noinspection unchecked
+                valueNode = this.mapToMappingNode((Map<String, SectionData>) v);
+            else valueNode = this.representer.represent(data);
+
+            // 应用注释
+            keyNode.setBlockComments(this.getCommentLines(sectionData.getCommentList(), CommentType.BLOCK));
+            if (valueNode instanceof MappingNode || valueNode instanceof SequenceNode)
+                keyNode.setInLineComments(this.getCommentLines(sectionData.getInlineCommentList(), CommentType.IN_LINE));
+            else
+                valueNode.setInLineComments(this.getCommentLines(sectionData.getInlineCommentList(), CommentType.IN_LINE));
+
+
+            tupleList.add(new NodeTuple(keyNode, valueNode));
+        }
+
+        return new MappingNode(Tag.MAP, tupleList, DumperOptions.FlowStyle.BLOCK);
+    }
+
+    /**
+     * 将配置数据保存到文件
+     *
+     * @param file 目标文件实例
+     * @throws IOException 如果文件写入失败
+     */
+    public void save(File file) throws IOException {
+        File parent = file.getParentFile();
+        if (parent != null) Files.createDirectories(parent.toPath());
+
+        SectionData sectionData = this.data;
+        // noinspection unchecked
+        MappingNode node = this.mapToMappingNode((Map<String, SectionData>) sectionData.getData());
+        node.setBlockComments(this.getCommentLines(this.headerComment, CommentType.BLOCK));
+        node.setEndComments(this.getCommentLines(this.footerComment, CommentType.BLOCK));
+
+        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
+            if (!node.getBlockComments().isEmpty() || !node.getEndComments().isEmpty() || !node.getValue().isEmpty()) {
+                if (node.getValue().isEmpty()) {
+                    node.setFlowStyle(DumperOptions.FlowStyle.FLOW);
+                }
+                this.yaml.serialize(node, writer);
+            } else writer.write("");
+        }
+    }
+}

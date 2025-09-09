@@ -1,7 +1,7 @@
 package cn.chengzhiya.mhdfyaml.manager;
 
 import cn.chengzhiya.mhdfyaml.MHDFYaml;
-import cn.chengzhiya.mhdfyaml.yaml.YamlConfiguration;
+import cn.chengzhiya.mhdfyaml.configuration.yaml.YamlConfiguration;
 import lombok.Getter;
 import lombok.SneakyThrows;
 
@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -69,7 +70,7 @@ public abstract class AbstractYamlManager {
         if (url == null) return;
 
         try (InputStream in = url.openStream()) {
-            YamlConfiguration originConfig = YamlConfiguration.load(in);
+            YamlConfiguration originConfig = YamlConfiguration.loadConfiguration(in);
             Set<String> originConfigKeys = originConfig.getKeys(true);
             Set<String> configKeys = this.getData().getKeys(true);
 
@@ -94,34 +95,34 @@ public abstract class AbstractYamlManager {
                 originConfigKeys = filteredKeys;
             }
 
+            forKey:
             for (String key : originConfigKeys) {
-                // TODO 开发注释操作
-//                String[] keyParts = key.split("\\.");
-//                StringBuilder prefixBuilder = new StringBuilder();
+                String[] keyParts = key.split("\\.");
+                StringBuilder prefixBuilder = new StringBuilder();
 
-//                // 绕过部分配置项使其不被更新加入
-//                for (int i = 0; i < keyParts.length; i++) {
-//                    String part = keyParts[i];
-//
-//                    if (i > 0) {
-//                        prefixBuilder.append('.');
-//                    }
-//                    prefixBuilder.append(part);
+                // 绕过部分配置项使其不被更新加入
+                for (int i = 0; i < keyParts.length; i++) {
+                    String part = keyParts[i];
 
-//                    List<String> prefixComments = originConfig.getComments(prefixBuilder.toString());
-//                    if (prefixComments.contains("!noUpdate")) {
-//                        continue forKey;
-//                    }
-//                }
+                    if (i > 0) {
+                        prefixBuilder.append('.');
+                    }
+                    prefixBuilder.append(part);
+
+                    List<String> prefixComments = originConfig.getCommentList(prefixBuilder.toString());
+                    if (prefixComments.contains("!noUpdate")) {
+                        continue forKey;
+                    }
+                }
 
                 // 更新配置值
                 this.getData().set(key, originConfig.get(key));
 
-//                // 更新注释
-//                List<String> comments = originConfig.getComments(key);
-//                if (!comments.isEmpty()) {
-//                    this.getData().setComments(key, comments);
-//                }
+                // 更新注释
+                List<String> comments = originConfig.getCommentList(prefixBuilder.toString());
+                if (!comments.isEmpty()) {
+                    this.getData().setComments(key, comments);
+                }
             }
 
             this.getData().set(this.getInstance().getConfigVersionKey(), version);
@@ -135,7 +136,7 @@ public abstract class AbstractYamlManager {
      */
     @SneakyThrows
     public void reload() {
-        this.data = YamlConfiguration.load(this.getFile());
+        this.data = YamlConfiguration.loadConfiguration(this.getFile());
     }
 
     /**
