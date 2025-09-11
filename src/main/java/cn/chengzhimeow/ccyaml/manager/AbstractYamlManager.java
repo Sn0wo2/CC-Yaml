@@ -1,6 +1,6 @@
 package cn.chengzhimeow.ccyaml.manager;
 
-import cn.chengzhimeow.ccyaml.MHDFYaml;
+import cn.chengzhimeow.ccyaml.CCYaml;
 import cn.chengzhimeow.ccyaml.configuration.yaml.YamlConfiguration;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -14,10 +14,10 @@ import java.util.Set;
 
 @Getter
 public abstract class AbstractYamlManager {
-    private final MHDFYaml instance;
+    private final CCYaml instance;
     private YamlConfiguration data;
 
-    public AbstractYamlManager(MHDFYaml instance) {
+    public AbstractYamlManager(CCYaml instance) {
         this.instance = instance;
     }
 
@@ -37,7 +37,7 @@ public abstract class AbstractYamlManager {
      * @return 文件实例
      */
     public File getFile() {
-        return new File(this.getInstance().getParentFile(), this.filePath());
+        return new File(this.getInstance().getParent(), this.filePath());
     }
 
     /**
@@ -79,17 +79,13 @@ public abstract class AbstractYamlManager {
 
             // 过滤有父级的键
             {
-                // noinspection ExtractMethodRecommender
                 Set<String> filteredKeys = new HashSet<>();
                 for (String key : originConfigKeys) {
                     int lastDotIndex = key.lastIndexOf('.');
-                    if (lastDotIndex == -1) {
-                        filteredKeys.add(key);
-                    } else {
+                    if (lastDotIndex == -1) filteredKeys.add(key);
+                    else {
                         String parentKey = key.substring(0, lastDotIndex);
-                        if (configKeys.contains(parentKey)) {
-                            filteredKeys.add(key);
-                        }
+                        if (configKeys.contains(parentKey)) filteredKeys.add(key);
                     }
                 }
                 originConfigKeys = filteredKeys;
@@ -104,15 +100,11 @@ public abstract class AbstractYamlManager {
                 for (int i = 0; i < keyParts.length; i++) {
                     String part = keyParts[i];
 
-                    if (i > 0) {
-                        prefixBuilder.append('.');
-                    }
+                    if (i > 0) prefixBuilder.append('.');
                     prefixBuilder.append(part);
 
                     List<String> prefixComments = originConfig.getCommentList(prefixBuilder.toString());
-                    if (prefixComments.contains("!noUpdate")) {
-                        continue forKey;
-                    }
+                    if (prefixComments.contains("!noUpdate")) continue forKey;
                 }
 
                 // 更新配置值
@@ -120,13 +112,11 @@ public abstract class AbstractYamlManager {
 
                 // 更新注释
                 List<String> comments = originConfig.getCommentList(prefixBuilder.toString());
-                if (!comments.isEmpty()) {
-                    this.getData().setCommentList(key, comments);
-                }
+                if (comments.isEmpty()) continue;
+                this.getData().setCommentList(key, comments);
             }
 
             this.getData().set(this.getInstance().getConfigVersionKey(), version);
-
             this.getData().save(this.getFile());
         }
     }
@@ -145,10 +135,7 @@ public abstract class AbstractYamlManager {
      * @return 配置实例
      */
     public YamlConfiguration getData() {
-        if (this.data == null) {
-            this.reload();
-        }
-
+        if (this.data == null) this.reload();
         return this.data;
     }
 }

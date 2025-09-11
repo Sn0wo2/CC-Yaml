@@ -1,6 +1,6 @@
 package cn.chengzhimeow.ccyaml.manager;
 
-import cn.chengzhimeow.ccyaml.MHDFYaml;
+import cn.chengzhimeow.ccyaml.CCYaml;
 import cn.chengzhimeow.ccyaml.exception.ResourceException;
 import lombok.SneakyThrows;
 
@@ -17,7 +17,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarFile;
 
-public record FileManager(MHDFYaml instance) {
+public record FileManager(CCYaml instance) {
     /**
      * 格式化路径
      *
@@ -75,7 +75,7 @@ public record FileManager(MHDFYaml instance) {
                         .filter(entry -> this.formatPath(entry.getName()).startsWith(finalResourceFolderPath) && !entry.isDirectory())
                         .forEach(entry -> {
                             try {
-                                File target = new File(this.instance().getParentFile(), entry.toString().replaceFirst(finalResourceFolderPath, finalFileFolderPath));
+                                File target = new File(this.instance().getParent(), entry.toString().replaceFirst(finalResourceFolderPath, finalFileFolderPath));
                                 this.copyFile(jar.getInputStream(entry), target.toPath(), replace);
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
@@ -97,7 +97,7 @@ public record FileManager(MHDFYaml instance) {
         resourcePath = this.formatPath(resourcePath);
         filePath = this.formatPath(filePath);
 
-        File target = new File(this.instance().getParentFile(), filePath);
+        File target = new File(this.instance().getParent(), filePath);
 
         ClassLoader loader = this.instance().getClassLoader();
         URL resourceUrl = loader.getResource(resourcePath);
