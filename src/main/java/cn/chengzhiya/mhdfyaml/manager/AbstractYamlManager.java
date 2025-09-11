@@ -121,7 +121,7 @@ public abstract class AbstractYamlManager {
                 // 更新注释
                 List<String> comments = originConfig.getCommentList(prefixBuilder.toString());
                 if (!comments.isEmpty()) {
-                    this.getData().setComments(key, comments);
+                    this.getData().setCommentList(key, comments);
                 }
             }
 

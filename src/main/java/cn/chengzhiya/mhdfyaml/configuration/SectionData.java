@@ -28,7 +28,7 @@ public class SectionData {
     /**
      * 从 Map 转换
      *
-     * @param map  要转换的 Map
+     * @param map 要转换的 Map
      * @return 转换后的 SectionData
      */
     public static SectionData fromMap(Map<String, Object> map) {

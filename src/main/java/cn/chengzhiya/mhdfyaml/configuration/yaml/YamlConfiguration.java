@@ -8,7 +8,6 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.comments.CommentLine;
 import org.yaml.snakeyaml.comments.CommentType;
 import org.yaml.snakeyaml.nodes.*;
-import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -22,7 +21,7 @@ public class YamlConfiguration extends MemoryConfiguration {
     public final LoaderOptions loaderOptions = new LoaderOptions();
     public final DumperOptions dumperOptions = new DumperOptions();
     private final YamlConstructor constructor;
-    private final Representer representer;
+    private final YamlRepresenter representer;
     private final Yaml yaml;
     public List<String> headerComment = new ArrayList<>();
     public List<String> footerComment = new ArrayList<>();
@@ -42,10 +41,11 @@ public class YamlConfiguration extends MemoryConfiguration {
         this.dumperOptions.setWidth(Integer.MAX_VALUE);
         this.dumperOptions.setProcessComments(true);
         this.dumperOptions.setPrettyFlow(true);
+        this.dumperOptions.setSplitLines(false);
         this.dumperOptions.setIndent(2);
 
         this.constructor = new YamlConstructor(this.loaderOptions);
-        this.representer = new Representer(this.dumperOptions);
+        this.representer = new YamlRepresenter(this.dumperOptions);
         this.yaml = new Yaml(this.constructor, this.representer, this.dumperOptions, this.loaderOptions);
     }
 
@@ -200,7 +200,6 @@ public class YamlConfiguration extends MemoryConfiguration {
             else
                 valueNode.setInLineComments(this.getCommentLines(sectionData.getInlineCommentList(), CommentType.IN_LINE));
 
-
             tupleList.add(new NodeTuple(keyNode, valueNode));
         }
 
@@ -223,13 +222,26 @@ public class YamlConfiguration extends MemoryConfiguration {
         node.setBlockComments(this.getCommentLines(this.headerComment, CommentType.BLOCK));
         node.setEndComments(this.getCommentLines(this.footerComment, CommentType.BLOCK));
 
-        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-            if (!node.getBlockComments().isEmpty() || !node.getEndComments().isEmpty() || !node.getValue().isEmpty()) {
-                if (node.getValue().isEmpty()) {
-                    node.setFlowStyle(DumperOptions.FlowStyle.FLOW);
-                }
-                this.yaml.serialize(node, writer);
-            } else writer.write("");
+        StringWriter stringWriter = new StringWriter();
+        if (!node.getBlockComments().isEmpty() || !node.getEndComments().isEmpty() || !node.getValue().isEmpty()) {
+            if (node.getValue().isEmpty()) node.setFlowStyle(DumperOptions.FlowStyle.FLOW);
+            this.yaml.serialize(node, stringWriter);
         }
+        String text = stringWriter.toString();
+
+        String[] lines = text.split("\n");
+        List<Integer> replaceLines = this.representer.getFoldLineList();
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (int i = 0; i < lines.length; i++) {
+                String line = lines[i];
+                if (replaceLines.contains(i)) {
+                    line = line.replace("|", ">");
+                }
+                writer.write(line);
+                writer.newLine();
+            }
+        }
+
+        this.representer.getFoldLineList().clear();
     }
 }

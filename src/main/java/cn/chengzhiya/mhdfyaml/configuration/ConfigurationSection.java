@@ -82,6 +82,7 @@ public interface ConfigurationSection {
     default <T> T get(String path, Class<T> clazz) {
         Object data = this.getSectionData(path).getData();
         if (data == null) return null;
+        if (data instanceof StringSectionData str && clazz == String.class) return clazz.cast(str.getValue());
         return clazz.cast(data);
     }
 
