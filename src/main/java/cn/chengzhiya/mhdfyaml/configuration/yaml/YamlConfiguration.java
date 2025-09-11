@@ -23,8 +23,6 @@ public class YamlConfiguration extends MemoryConfiguration {
     private final YamlConstructor constructor;
     private final YamlRepresenter representer;
     private final Yaml yaml;
-    public List<String> headerComment = new ArrayList<>();
-    public List<String> footerComment = new ArrayList<>();
 
     /**
      * YamlConfiguration 的构造函数, 用于初始化 YAML 解析器和相关配置
@@ -59,8 +57,6 @@ public class YamlConfiguration extends MemoryConfiguration {
         YamlConfiguration configuration = new YamlConfiguration();
         MappingNode node = (MappingNode) configuration.yaml.compose(reader);
         if (node != null) {
-            configuration.headerComment = configuration.getCommentLines(node.getBlockComments());
-            configuration.footerComment = configuration.getCommentLines(node.getEndComments());
             configuration.data = configuration.mappingNodeToSectionData(node);
         }
         return configuration;
@@ -171,7 +167,12 @@ public class YamlConfiguration extends MemoryConfiguration {
             map.put(keyString, sectionData);
         }
 
-        return new SectionData(map);
+        SectionData data = new SectionData(map);
+        data.setCommentList(this.getCommentLines(root.getBlockComments()));
+        data.setInlineCommentList(this.getCommentLines(root.getInLineComments()));
+        data.setEndCommentList(this.getCommentLines(root.getEndComments()));
+
+        return data;
     }
 
     /**
@@ -219,8 +220,6 @@ public class YamlConfiguration extends MemoryConfiguration {
         SectionData sectionData = this.data;
         // noinspection unchecked
         MappingNode node = this.mapToMappingNode((Map<String, SectionData>) sectionData.getData());
-        node.setBlockComments(this.getCommentLines(this.headerComment, CommentType.BLOCK));
-        node.setEndComments(this.getCommentLines(this.footerComment, CommentType.BLOCK));
 
         StringWriter stringWriter = new StringWriter();
         if (!node.getBlockComments().isEmpty() || !node.getEndComments().isEmpty() || !node.getValue().isEmpty()) {

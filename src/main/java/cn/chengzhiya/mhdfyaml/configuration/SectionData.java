@@ -14,11 +14,13 @@ public class SectionData {
     private Object data;
     private List<String> commentList;
     private List<String> inlineCommentList;
+    private List<String> endCommentList;
 
     public SectionData(Object data) {
         this.data = data;
         this.commentList = new ArrayList<>();
         this.inlineCommentList = new ArrayList<>();
+        this.endCommentList = new ArrayList<>();
     }
 
     public SectionData() {
