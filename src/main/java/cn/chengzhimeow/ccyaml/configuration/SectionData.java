@@ -1,4 +1,4 @@
-package cn.chengzhiya.mhdfyaml.configuration;
+package cn.chengzhimeow.ccyaml.configuration;
 
 import lombok.Getter;
 import lombok.Setter;

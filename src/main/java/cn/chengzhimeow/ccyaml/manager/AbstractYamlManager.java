@@ -1,7 +1,7 @@
-package cn.chengzhiya.mhdfyaml.manager;
+package cn.chengzhimeow.ccyaml.manager;
 
-import cn.chengzhiya.mhdfyaml.MHDFYaml;
-import cn.chengzhiya.mhdfyaml.configuration.yaml.YamlConfiguration;
+import cn.chengzhimeow.ccyaml.MHDFYaml;
+import cn.chengzhimeow.ccyaml.configuration.yaml.YamlConfiguration;
 import lombok.Getter;
 import lombok.SneakyThrows;
 

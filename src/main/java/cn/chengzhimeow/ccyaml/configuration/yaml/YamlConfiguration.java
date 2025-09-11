@@ -1,7 +1,7 @@
-package cn.chengzhiya.mhdfyaml.configuration.yaml;
+package cn.chengzhimeow.ccyaml.configuration.yaml;
 
-import cn.chengzhiya.mhdfyaml.configuration.MemoryConfiguration;
-import cn.chengzhiya.mhdfyaml.configuration.SectionData;
+import cn.chengzhimeow.ccyaml.configuration.MemoryConfiguration;
+import cn.chengzhimeow.ccyaml.configuration.SectionData;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;

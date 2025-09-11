@@ -1,6 +1,6 @@
-package cn.chengzhiya.mhdfyaml.configuration.yaml;
+package cn.chengzhimeow.ccyaml.configuration.yaml;
 
-import cn.chengzhiya.mhdfyaml.configuration.StringSectionData;
+import cn.chengzhimeow.ccyaml.configuration.StringSectionData;
 import org.yaml.snakeyaml.nodes.ScalarNode;
 
 public record YamlStringSectionData(

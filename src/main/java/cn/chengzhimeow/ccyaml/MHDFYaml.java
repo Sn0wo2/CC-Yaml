@@ -1,7 +1,6 @@
-package cn.chengzhiya.mhdfyaml;
+package cn.chengzhimeow.ccyaml;
 
-import cn.chengzhiya.mhdfreflection.manager.ReflectionManager;
-import cn.chengzhiya.mhdfyaml.manager.FileManager;
+import cn.chengzhimeow.ccyaml.manager.FileManager;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,7 +11,6 @@ public final class MHDFYaml {
     private final ClassLoader classLoader;
     private final String version;
     private final File parentFile;
-    private final ReflectionManager reflectionManager;
     private final FileManager fileManager;
 
     @Setter
@@ -23,7 +21,6 @@ public final class MHDFYaml {
         this.parentFile = parentFile;
         this.version = version;
 
-        this.reflectionManager = new ReflectionManager();
         this.fileManager = new FileManager(this);
     }
 

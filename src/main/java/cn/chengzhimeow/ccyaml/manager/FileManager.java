@@ -1,7 +1,7 @@
-package cn.chengzhiya.mhdfyaml.manager;
+package cn.chengzhimeow.ccyaml.manager;
 
-import cn.chengzhiya.mhdfyaml.MHDFYaml;
-import cn.chengzhiya.mhdfyaml.exception.ResourceException;
+import cn.chengzhimeow.ccyaml.MHDFYaml;
+import cn.chengzhimeow.ccyaml.exception.ResourceException;
 import lombok.SneakyThrows;
 
 import java.io.File;

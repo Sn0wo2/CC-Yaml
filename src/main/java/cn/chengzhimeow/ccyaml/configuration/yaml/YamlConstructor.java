@@ -1,4 +1,4 @@
-package cn.chengzhiya.mhdfyaml.configuration.yaml;
+package cn.chengzhimeow.ccyaml.configuration.yaml;
 
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.constructor.Construct;

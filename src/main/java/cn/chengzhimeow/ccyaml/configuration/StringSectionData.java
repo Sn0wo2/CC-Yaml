@@ -1,4 +1,4 @@
-package cn.chengzhiya.mhdfyaml.configuration;
+package cn.chengzhimeow.ccyaml.configuration;
 
 public interface StringSectionData {
     String getValue();

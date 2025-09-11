@@ -1,4 +1,4 @@
-package cn.chengzhiya.mhdfyaml.configuration.yaml;
+package cn.chengzhimeow.ccyaml.configuration.yaml;
 
 import lombok.Getter;
 import org.yaml.snakeyaml.DumperOptions;
