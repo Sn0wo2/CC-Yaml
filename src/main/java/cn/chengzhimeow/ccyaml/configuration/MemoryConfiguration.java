@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+@SuppressWarnings("unused")
 public class MemoryConfiguration implements ConfigurationSection {
     @Getter
     private final ConfigurationSection parent;

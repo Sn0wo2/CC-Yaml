@@ -8,6 +8,7 @@ import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.ScalarNode;
 import org.yaml.snakeyaml.nodes.Tag;
 
+@SuppressWarnings("unused")
 public class YamlConstructor extends SafeConstructor {
     public YamlConstructor(LoaderOptions loaderOptions) {
         super(loaderOptions);

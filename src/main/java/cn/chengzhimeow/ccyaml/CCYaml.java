@@ -7,6 +7,7 @@ import lombok.Setter;
 import java.io.File;
 
 @Getter
+@SuppressWarnings("unused")
 public final class CCYaml {
     private final ClassLoader classLoader;
     private final String version;

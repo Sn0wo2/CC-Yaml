@@ -10,6 +10,7 @@ import java.util.Map;
 
 @Getter
 @Setter
+@SuppressWarnings("unused")
 public class SectionData {
     private Object data;
     private List<String> commentList;

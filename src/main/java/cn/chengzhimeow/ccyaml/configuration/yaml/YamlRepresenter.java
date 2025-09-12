@@ -10,6 +10,7 @@ import org.yaml.snakeyaml.representer.Representer;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class YamlRepresenter extends Representer {
     @Getter
     private final List<Integer> foldLineList = new ArrayList<>();

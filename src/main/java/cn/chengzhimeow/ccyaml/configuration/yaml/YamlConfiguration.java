@@ -14,34 +14,75 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 
+@SuppressWarnings("unused")
 public class YamlConfiguration extends MemoryConfiguration {
-    public final LoaderOptions loaderOptions = new LoaderOptions();
-    public final DumperOptions dumperOptions = new DumperOptions();
+    public final LoaderOptions loaderOptions;
+    public final DumperOptions dumperOptions;
     private final YamlConstructor constructor;
     private final YamlRepresenter representer;
     private final Yaml yaml;
 
-    /**
-     * YamlConfiguration 的构造函数, 用于初始化 YAML 解析器和相关配置
-     */
-    public YamlConfiguration() {
+    public YamlConfiguration(LoaderOptions loaderOptions, DumperOptions dumperOptions, YamlConstructor constructor, YamlRepresenter representer) {
         super(null, "");
 
-        this.loaderOptions.setMaxAliasesForCollections(Integer.MAX_VALUE);
-        this.loaderOptions.setCodePointLimit(Integer.MAX_VALUE);
-        this.loaderOptions.setNestingDepthLimit(100);
-        this.loaderOptions.setProcessComments(true);
+        this.loaderOptions = loaderOptions;
+        this.dumperOptions = dumperOptions;
+        this.constructor = constructor;
+        this.representer = representer;
 
-        this.dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-        this.dumperOptions.setWidth(Integer.MAX_VALUE);
-        this.dumperOptions.setProcessComments(true);
-        this.dumperOptions.setPrettyFlow(true);
-        this.dumperOptions.setSplitLines(false);
-        this.dumperOptions.setIndent(2);
-
-        this.constructor = new YamlConstructor(this.loaderOptions);
-        this.representer = new YamlRepresenter(this.dumperOptions);
         this.yaml = new Yaml(this.constructor, this.representer, this.dumperOptions, this.loaderOptions);
+    }
+
+    public YamlConfiguration(LoaderOptions loaderOptions, DumperOptions dumperOptions, YamlConstructor constructor) {
+        this(loaderOptions, dumperOptions, constructor, new YamlRepresenter(dumperOptions));
+    }
+
+    public YamlConfiguration(LoaderOptions loaderOptions, DumperOptions dumperOptions, YamlRepresenter representer) {
+        this(loaderOptions, dumperOptions, new YamlConstructor(loaderOptions), representer);
+    }
+
+    public YamlConfiguration(LoaderOptions loaderOptions, DumperOptions dumperOptions) {
+        this(loaderOptions, dumperOptions, new YamlConstructor(loaderOptions));
+    }
+
+    public YamlConfiguration(DumperOptions dumperOptions) {
+        this(YamlConfiguration.defaultLoaderOptions(), dumperOptions);
+    }
+
+    public YamlConfiguration(LoaderOptions loaderOptions) {
+        this(loaderOptions, YamlConfiguration.defaultDumperOptions());
+    }
+
+    public YamlConfiguration() {
+        this(YamlConfiguration.defaultLoaderOptions());
+    }
+
+    /**
+     * 默认加载配置实例
+     */
+    public static LoaderOptions defaultLoaderOptions() {
+        LoaderOptions loaderOptions = new LoaderOptions();
+        loaderOptions.setMaxAliasesForCollections(Integer.MAX_VALUE);
+        loaderOptions.setCodePointLimit(Integer.MAX_VALUE);
+        loaderOptions.setNestingDepthLimit(100);
+        loaderOptions.setProcessComments(true);
+
+        return loaderOptions;
+    }
+
+    /**
+     * 默认加载输出实例
+     */
+    public static DumperOptions defaultDumperOptions() {
+        DumperOptions dumperOptions = new DumperOptions();
+        dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        dumperOptions.setWidth(Integer.MAX_VALUE);
+        dumperOptions.setProcessComments(true);
+        dumperOptions.setPrettyFlow(true);
+        dumperOptions.setSplitLines(false);
+        dumperOptions.setIndent(2);
+
+        return dumperOptions;
     }
 
     /**
@@ -52,10 +93,7 @@ public class YamlConfiguration extends MemoryConfiguration {
      */
     public static YamlConfiguration loadConfiguration(Reader reader) {
         YamlConfiguration configuration = new YamlConfiguration();
-        MappingNode node = (MappingNode) configuration.yaml.compose(reader);
-        if (node != null) {
-            configuration.data = configuration.mappingNodeToSectionData(node);
-        }
+        configuration.load(reader);
         return configuration;
     }
 
@@ -66,11 +104,9 @@ public class YamlConfiguration extends MemoryConfiguration {
      * @return 加载完成的 YamlConfiguration 实例
      */
     public static YamlConfiguration loadConfiguration(InputStream inputStream) {
-        try (InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
-            return YamlConfiguration.loadConfiguration(reader);
-        } catch (IOException e) {
-            throw new RuntimeException("无法从输入流加载 YAML", e);
-        }
+        YamlConfiguration configuration = new YamlConfiguration();
+        configuration.load(inputStream);
+        return configuration;
     }
 
     /**
@@ -81,11 +117,83 @@ public class YamlConfiguration extends MemoryConfiguration {
      * @throws IOException 如果文件读取失败
      */
     public static YamlConfiguration loadConfiguration(File file) throws IOException {
+        YamlConfiguration configuration = new YamlConfiguration();
+        configuration.load(file);
+        return configuration;
+    }
+
+    /**
+     * 从 Reader 加载配置文件
+     *
+     * @param reader 配置文件读取实例
+     */
+    public void load(Reader reader) {
+        MappingNode node = (MappingNode) this.yaml.compose(reader);
+        if (node != null) this.data = this.mappingNodeToSectionData(node);
+    }
+
+    /**
+     * 从 InputStream 加载配置文件
+     *
+     * @param inputStream 配置文件输入流实例
+     */
+    public void load(InputStream inputStream) {
+        try (InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
+            this.load(reader);
+        } catch (IOException e) {
+            throw new RuntimeException("无法从输入流加载 YAML", e);
+        }
+    }
+
+    /**
+     * 从 File 加载配置文件
+     *
+     * @param file 配置文件文件实例
+     * @throws IOException 如果文件读取失败
+     */
+    public void load(File file) throws IOException {
         if (!file.exists()) throw new FileNotFoundException("找不到文件: " + file.getPath());
 
         try (FileInputStream fis = new FileInputStream(file)) {
-            return YamlConfiguration.loadConfiguration(fis);
+            this.load(fis);
         }
+    }
+
+    /**
+     * 将配置数据保存到文件
+     *
+     * @param file 目标文件实例
+     * @throws IOException 如果文件写入失败
+     */
+    public void save(File file) throws IOException {
+        File parent = file.getParentFile();
+        if (parent != null) Files.createDirectories(parent.toPath());
+
+        SectionData sectionData = this.data;
+        // noinspection unchecked
+        MappingNode node = this.mapToMappingNode((Map<String, SectionData>) sectionData.getData());
+
+        StringWriter stringWriter = new StringWriter();
+        if (!this.isNotNullAndEmpty(node.getBlockComments()) || !this.isNotNullAndEmpty(node.getEndComments()) || !this.isNotNullAndEmpty(node.getValue())) {
+            if (node.getValue().isEmpty()) node.setFlowStyle(DumperOptions.FlowStyle.FLOW);
+            this.yaml.serialize(node, stringWriter);
+        }
+        String text = stringWriter.toString();
+
+        String[] lines = text.split("\n");
+        List<Integer> replaceLines = this.representer.getFoldLineList();
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (int i = 0; i < lines.length; i++) {
+                String line = lines[i];
+                if (replaceLines.contains(i)) {
+                    line = line.replace("|", ">");
+                }
+                writer.write(line);
+                writer.newLine();
+            }
+        }
+
+        this.representer.getFoldLineList().clear();
     }
 
     /**
@@ -214,42 +322,5 @@ public class YamlConfiguration extends MemoryConfiguration {
         }
 
         return new MappingNode(Tag.MAP, tupleList, DumperOptions.FlowStyle.BLOCK);
-    }
-
-    /**
-     * 将配置数据保存到文件
-     *
-     * @param file 目标文件实例
-     * @throws IOException 如果文件写入失败
-     */
-    public void save(File file) throws IOException {
-        File parent = file.getParentFile();
-        if (parent != null) Files.createDirectories(parent.toPath());
-
-        SectionData sectionData = this.data;
-        // noinspection unchecked
-        MappingNode node = this.mapToMappingNode((Map<String, SectionData>) sectionData.getData());
-
-        StringWriter stringWriter = new StringWriter();
-        if (!this.isNotNullAndEmpty(node.getBlockComments()) || !this.isNotNullAndEmpty(node.getEndComments()) || !this.isNotNullAndEmpty(node.getValue())) {
-            if (node.getValue().isEmpty()) node.setFlowStyle(DumperOptions.FlowStyle.FLOW);
-            this.yaml.serialize(node, stringWriter);
-        }
-        String text = stringWriter.toString();
-
-        String[] lines = text.split("\n");
-        List<Integer> replaceLines = this.representer.getFoldLineList();
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            for (int i = 0; i < lines.length; i++) {
-                String line = lines[i];
-                if (replaceLines.contains(i)) {
-                    line = line.replace("|", ">");
-                }
-                writer.write(line);
-                writer.newLine();
-            }
-        }
-
-        this.representer.getFoldLineList().clear();
     }
 }

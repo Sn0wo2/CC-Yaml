@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Getter
+@SuppressWarnings("unused")
 public abstract class AbstractFolderYamlManager {
     private final CCYaml instance;
 

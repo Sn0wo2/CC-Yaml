@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 @Getter
+@SuppressWarnings("unused")
 public abstract class AbstractYamlManager {
     private final CCYaml instance;
     private YamlConfiguration data;
