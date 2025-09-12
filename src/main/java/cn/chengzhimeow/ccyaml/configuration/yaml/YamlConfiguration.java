@@ -12,10 +12,7 @@ import org.yaml.snakeyaml.nodes.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class YamlConfiguration extends MemoryConfiguration {
     public final LoaderOptions loaderOptions = new LoaderOptions();
@@ -92,13 +89,23 @@ public class YamlConfiguration extends MemoryConfiguration {
     }
 
     /**
+     * 检查指定集合实例不为空
+     *
+     * @param collection 集合实例
+     * @return 结果
+     */
+    private boolean isNotNullAndEmpty(Collection<?> collection) {
+        return collection == null || collection.isEmpty();
+    }
+
+    /**
      * 将 SnakeYAML 的 CommentLine 列表转换为字符串列表
      *
      * @param comments CommentLine 列表
      * @return 字符串注释列表
      */
     private List<String> getCommentLines(List<CommentLine> comments) {
-        if (comments == null) return new ArrayList<>();
+        if (this.isNotNullAndEmpty(comments)) return new ArrayList<>();
 
         List<String> lines = new ArrayList<>();
         for (CommentLine comment : comments) {
@@ -119,6 +126,8 @@ public class YamlConfiguration extends MemoryConfiguration {
      * @return CommentLine 列表
      */
     private List<CommentLine> getCommentLines(List<String> comments, CommentType commentType) {
+        if (this.isNotNullAndEmpty(comments)) return new ArrayList<>();
+
         List<CommentLine> lines = new ArrayList<>();
         for (String comment : comments) {
             // null 或空字符串表示一个空行注释
@@ -222,7 +231,7 @@ public class YamlConfiguration extends MemoryConfiguration {
         MappingNode node = this.mapToMappingNode((Map<String, SectionData>) sectionData.getData());
 
         StringWriter stringWriter = new StringWriter();
-        if (!node.getBlockComments().isEmpty() || !node.getEndComments().isEmpty() || !node.getValue().isEmpty()) {
+        if (!this.isNotNullAndEmpty(node.getBlockComments()) || !this.isNotNullAndEmpty(node.getEndComments()) || !this.isNotNullAndEmpty(node.getValue())) {
             if (node.getValue().isEmpty()) node.setFlowStyle(DumperOptions.FlowStyle.FLOW);
             this.yaml.serialize(node, stringWriter);
         }

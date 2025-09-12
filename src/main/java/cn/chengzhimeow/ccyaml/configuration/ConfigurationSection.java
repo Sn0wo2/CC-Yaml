@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
 public interface ConfigurationSection {
@@ -250,7 +251,15 @@ public interface ConfigurationSection {
     @SuppressWarnings("unchecked")
     default <T> List<T> getList(String path, List<T> def, Class<T> clazz) {
         List<T> list = this.get(path, List.class);
-        return list != null ? list : def;
+        if (list == null) return def;
+        if (list.isEmpty()) return list;
+
+        if (clazz == String.class && list.get(0) instanceof StringSectionData)
+            return (List<T>) list.stream()
+                    .map(i -> ((StringSectionData) i).getValue())
+                    .toList();
+
+        return list;
     }
 
     /**
