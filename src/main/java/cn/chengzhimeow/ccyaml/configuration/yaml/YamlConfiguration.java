@@ -312,11 +312,17 @@ public class YamlConfiguration extends MemoryConfiguration {
             else valueNode = this.representer.represent(data);
 
             // 应用注释
-            keyNode.setBlockComments(this.getCommentLines(sectionData.getCommentList(), CommentType.BLOCK));
+            List<String> commentList = sectionData.getCommentList();
+            if (commentList == null || commentList.isEmpty()) keyNode.setBlockComments(null);
+            else keyNode.setBlockComments(this.getCommentLines(commentList, CommentType.BLOCK));
+
+            List<String> inlineCommentList = sectionData.getInlineCommentList();
             if (valueNode instanceof MappingNode || valueNode instanceof SequenceNode)
-                keyNode.setInLineComments(this.getCommentLines(sectionData.getInlineCommentList(), CommentType.IN_LINE));
+                if (inlineCommentList == null || inlineCommentList.isEmpty()) keyNode.setInLineComments(null);
+                else keyNode.setInLineComments(this.getCommentLines(inlineCommentList, CommentType.IN_LINE));
             else
-                valueNode.setInLineComments(this.getCommentLines(sectionData.getInlineCommentList(), CommentType.IN_LINE));
+                if (inlineCommentList == null || inlineCommentList.isEmpty()) valueNode.setInLineComments(null);
+                else valueNode.setInLineComments(this.getCommentLines(inlineCommentList, CommentType.IN_LINE));
 
             tupleList.add(new NodeTuple(keyNode, valueNode));
         }
