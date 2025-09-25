@@ -34,14 +34,20 @@ public class SectionData {
      * @param map 要转换的 Map
      * @return 转换后的 SectionData
      */
-    public static SectionData fromMap(Map<String, Object> map) {
+    public static SectionData fromMap(Map<Object, Object> map) {
         Map<String, SectionData> dataMap = new LinkedHashMap<>();
 
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            if (entry.getValue() instanceof SectionData value) dataMap.put(entry.getKey(), value);
+        for (Map.Entry<Object, Object> entry : map.entrySet()) {
+            Object keyObj = entry.getKey();
+            String key;
+            if (keyObj instanceof String s) key = s;
+            else if (keyObj instanceof StringSectionData s) key = s.getValue();
+            else continue;
+
+            if (entry.getValue() instanceof SectionData value) dataMap.put(key, value);
             else if (entry.getValue() instanceof Map) // noinspection unchecked
-                dataMap.put(entry.getKey(), SectionData.fromMap((Map<String, Object>) entry.getValue()));
-            else dataMap.put(entry.getKey(), new SectionData(entry.getValue()));
+                dataMap.put(key, SectionData.fromMap((Map<Object, Object>) entry.getValue()));
+            else dataMap.put(key, new SectionData(entry.getValue()));
         }
 
         return new SectionData(dataMap);

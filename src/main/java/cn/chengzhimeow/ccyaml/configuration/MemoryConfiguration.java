@@ -98,7 +98,7 @@ public class MemoryConfiguration implements ConfigurationSection {
 
             // 如果值是 Map, 递归转换为 SectionData
             if (value instanceof Map) // noinspection unchecked
-                data.setData(SectionData.fromMap((Map<String, Object>) value).getData());
+                data.setData(SectionData.fromMap((Map<Object, Object>) value).getData());
             else data.setData(value);
 
             currentMap.put(finalKey, data);
