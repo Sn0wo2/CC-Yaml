@@ -423,6 +423,8 @@ public interface ConfigurationSection {
         List<ConfigurationSection> result = new ArrayList<>();
         for (int i = 0; i < maps.size(); i++) {
             Map map = maps.get(i);
+            if (map == null) continue;
+
             MemoryConfiguration configuration = new MemoryConfiguration(this, this.getKey(path) + "." + i);
             // noinspection unchecked
             configuration.data = SectionData.fromMap(map);
