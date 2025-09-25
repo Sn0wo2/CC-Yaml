@@ -28,6 +28,36 @@ public class MemoryConfiguration implements ConfigurationSection {
     }
 
     /**
+     * 创建空配置节点
+     *
+     * @param parent 父配置节点
+     * @param path 当前节点的路径
+     * @return 节点
+     */
+    public static MemoryConfiguration empty(ConfigurationSection parent, String path) {
+        return new MemoryConfiguration(parent, path);
+    }
+
+    /**
+     * 创建空配置节点
+     *
+     * @param parent 父配置节点
+     * @return 节点
+     */
+    public static MemoryConfiguration empty(ConfigurationSection parent) {
+        return new MemoryConfiguration(parent, null);
+    }
+
+    /**
+     * 创建空配置节点
+     *
+     * @return 节点
+     */
+    public static MemoryConfiguration empty() {
+        return new MemoryConfiguration(null, null);
+    }
+
+    /**
      * 递归获取 Map 中的所有键 (包括子 Map 的键)
      *
      * @param map 要扫描的 Map
