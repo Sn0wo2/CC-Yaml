@@ -242,10 +242,14 @@ public class YamlConfiguration extends MemoryConfiguration {
         List<CommentLine> lines = new ArrayList<>();
         for (String comment : comments) {
             // null 或空字符串表示一个空行注释
+            if (comment == null) {
+                lines.add(new CommentLine(null, null, "", CommentType.BLANK_LINE));
+                continue;
+            }
             lines.add(new CommentLine(
                     null,
                     null,
-                    comment == null ? "" : " " + comment,
+                    " " + comment,
                     commentType
             ));
         }
