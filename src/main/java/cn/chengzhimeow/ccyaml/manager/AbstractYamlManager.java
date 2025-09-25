@@ -4,6 +4,8 @@ import cn.chengzhimeow.ccyaml.CCYaml;
 import cn.chengzhimeow.ccyaml.configuration.yaml.YamlConfiguration;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.InputStream;
@@ -15,10 +17,11 @@ import java.util.Set;
 @Getter
 @SuppressWarnings("unused")
 public abstract class AbstractYamlManager {
-    private final CCYaml instance;
-    private YamlConfiguration data;
+    private final @NotNull CCYaml instance;
+    private @Nullable YamlConfiguration data;
+    private @Nullable File file;
 
-    public AbstractYamlManager(CCYaml instance) {
+    public AbstractYamlManager(@NotNull CCYaml instance) {
         this.instance = instance;
     }
 
@@ -38,7 +41,9 @@ public abstract class AbstractYamlManager {
      * @return 文件实例
      */
     public File getFile() {
-        return new File(this.getInstance().getParent(), this.filePath());
+        if (this.file == null)
+            this.file = new File(this.getInstance().getParent(), this.filePath());
+        return this.file;
     }
 
     /**
@@ -135,7 +140,7 @@ public abstract class AbstractYamlManager {
      *
      * @return 配置实例
      */
-    public YamlConfiguration getData() {
+    public @NotNull YamlConfiguration getData() {
         if (this.data == null) this.reload();
         return this.data;
     }

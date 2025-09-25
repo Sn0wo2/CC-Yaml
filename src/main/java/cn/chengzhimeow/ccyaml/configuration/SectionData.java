@@ -2,6 +2,8 @@ package cn.chengzhimeow.ccyaml.configuration;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -12,12 +14,12 @@ import java.util.Map;
 @Setter
 @SuppressWarnings("unused")
 public class SectionData {
-    private Object data;
-    private List<String> commentList;
-    private List<String> inlineCommentList;
-    private List<String> endCommentList;
+    private @Nullable Object data;
+    private @NotNull List<String> commentList;
+    private @NotNull List<String> inlineCommentList;
+    private @NotNull List<String> endCommentList;
 
-    public SectionData(Object data) {
+    public SectionData(@Nullable Object data) {
         this.data = data;
         this.commentList = new ArrayList<>();
         this.inlineCommentList = new ArrayList<>();
@@ -34,7 +36,7 @@ public class SectionData {
      * @param map 要转换的 Map
      * @return 转换后的 SectionData
      */
-    public static SectionData fromMap(Map<Object, Object> map) {
+    public static @NotNull SectionData fromMap(@NotNull Map<Object, Object> map) {
         Map<String, SectionData> dataMap = new LinkedHashMap<>();
 
         for (Map.Entry<Object, Object> entry : map.entrySet()) {

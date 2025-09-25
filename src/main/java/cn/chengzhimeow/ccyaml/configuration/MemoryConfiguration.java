@@ -1,20 +1,19 @@
 package cn.chengzhimeow.ccyaml.configuration;
 
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @SuppressWarnings("unused")
 public class MemoryConfiguration implements ConfigurationSection {
     @Getter
-    private final ConfigurationSection parent;
+    private final @Nullable ConfigurationSection parent;
     @Getter
-    private final String path;
+    private final @Nullable String path;
 
-    protected SectionData data = new SectionData(new LinkedHashMap<String, SectionData>());
+    protected @NotNull SectionData data = new SectionData(new LinkedHashMap<String, SectionData>());
 
     /**
      * MemoryConfiguration 的构造函数
@@ -22,7 +21,7 @@ public class MemoryConfiguration implements ConfigurationSection {
      * @param parent 父配置节点
      * @param path   当前节点的路径
      */
-    protected MemoryConfiguration(ConfigurationSection parent, String path) {
+    protected MemoryConfiguration(@Nullable ConfigurationSection parent, @Nullable String path) {
         this.parent = parent;
         this.path = path;
     }
@@ -31,10 +30,10 @@ public class MemoryConfiguration implements ConfigurationSection {
      * 创建空配置节点
      *
      * @param parent 父配置节点
-     * @param path 当前节点的路径
+     * @param path   当前节点的路径
      * @return 节点
      */
-    public static MemoryConfiguration empty(ConfigurationSection parent, String path) {
+    public static @NotNull MemoryConfiguration empty(@Nullable ConfigurationSection parent, @Nullable String path) {
         return new MemoryConfiguration(parent, path);
     }
 
@@ -44,7 +43,7 @@ public class MemoryConfiguration implements ConfigurationSection {
      * @param parent 父配置节点
      * @return 节点
      */
-    public static MemoryConfiguration empty(ConfigurationSection parent) {
+    public static @NotNull MemoryConfiguration empty(@Nullable ConfigurationSection parent) {
         return new MemoryConfiguration(parent, null);
     }
 
@@ -53,7 +52,7 @@ public class MemoryConfiguration implements ConfigurationSection {
      *
      * @return 节点
      */
-    public static MemoryConfiguration empty() {
+    public static @NotNull MemoryConfiguration empty() {
         return new MemoryConfiguration(null, null);
     }
 
@@ -63,7 +62,7 @@ public class MemoryConfiguration implements ConfigurationSection {
      * @param map 要扫描的 Map
      * @return 所有键的集合
      */
-    public static Set<String> getKeys(Map<String, ?> map) {
+    public static @NotNull Set<String> getKeys(@NotNull Map<String, ?> map) {
         Set<String> set = new HashSet<>();
 
         for (Map.Entry<String, ?> entry : map.entrySet()) {
@@ -86,7 +85,7 @@ public class MemoryConfiguration implements ConfigurationSection {
      * @return 完整路径
      */
     @Override
-    public String getKey(String path) {
+    public @NotNull String getKey(String path) {
         if (this.path == null || this.path.isEmpty()) return path;
         return this.path + "." + path;
     }
@@ -99,7 +98,7 @@ public class MemoryConfiguration implements ConfigurationSection {
      * @param value 要设定的值, 如果为 null 则会移除该键
      */
     @Override
-    public void set(String path, Object value) {
+    public void set(@NotNull String path, @Nullable Object value) {
         String[] keys = path.split("\\.");
         int end = keys.length - 1;
 
@@ -107,7 +106,7 @@ public class MemoryConfiguration implements ConfigurationSection {
         Map<String, SectionData> currentMap = (Map<String, SectionData>) this.data.getData();
         for (int i = 0; i < end; i++) {
             String key = keys[i];
-            SectionData sectionData = currentMap.get(key);
+            SectionData sectionData = Objects.requireNonNull(currentMap).get(key);
 
             if (sectionData == null || !(sectionData.getData() instanceof Map)) {
                 Map<String, SectionData> newMap = new LinkedHashMap<>();
@@ -120,10 +119,9 @@ public class MemoryConfiguration implements ConfigurationSection {
         }
 
         String finalKey = keys[end];
-
-        if (value == null) currentMap.remove(finalKey);
+        if (value == null) Objects.requireNonNull(currentMap).remove(finalKey);
         else {
-            SectionData data = currentMap.get(finalKey);
+            SectionData data = Objects.requireNonNull(currentMap).get(finalKey);
             if (data == null) data = new SectionData();
 
             // 如果值是 Map, 递归转换为 SectionData
@@ -142,7 +140,7 @@ public class MemoryConfiguration implements ConfigurationSection {
      * @return 包含数据和注释的 SectionData 对象, 如果路径不存在则返回一个空的 SectionData
      */
     @Override
-    public SectionData getSectionData(String path) {
+    public @NotNull SectionData getSectionData(String path) {
         String[] keys = path.split("\\.");
         int end = keys.length - 1;
 
@@ -151,13 +149,13 @@ public class MemoryConfiguration implements ConfigurationSection {
         for (int i = 0; i < end; i++) {
             String key = keys[i];
 
-            SectionData currentSectionData = currentMap.get(key);
+            SectionData currentSectionData = Objects.requireNonNull(currentMap).get(key);
             if (currentSectionData != null && currentSectionData.getData() instanceof Map) // noinspection unchecked
                 currentMap = (Map<String, SectionData>) currentSectionData.getData();
             else return new SectionData();
         }
 
-        SectionData sectionData = currentMap.get(keys[end]);
+        SectionData sectionData = Objects.requireNonNull(currentMap).get(keys[end]);
         return sectionData != null ? sectionData : new SectionData();
     }
 
@@ -168,11 +166,11 @@ public class MemoryConfiguration implements ConfigurationSection {
      * @return 键的集合
      */
     @Override
-    public Set<String> getKeys(boolean deep) {
+    public @NotNull Set<String> getKeys(boolean deep) {
         // noinspection unchecked
         Map<String, SectionData> map = (Map<String, SectionData>) this.data.getData();
 
-        if (!deep) return map.keySet();
-        return MemoryConfiguration.getKeys(map);
+        if (!deep) return Objects.requireNonNull(map).keySet();
+        return MemoryConfiguration.getKeys(Objects.requireNonNull(map));
     }
 }

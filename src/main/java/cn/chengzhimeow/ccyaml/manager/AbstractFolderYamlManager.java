@@ -2,10 +2,10 @@ package cn.chengzhimeow.ccyaml.manager;
 
 import cn.chengzhimeow.ccyaml.CCYaml;
 import cn.chengzhimeow.ccyaml.configuration.yaml.YamlConfiguration;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
@@ -16,14 +16,13 @@ import java.util.Set;
 @Getter
 @SuppressWarnings("unused")
 public abstract class AbstractFolderYamlManager {
-    private final CCYaml instance;
+    private final @NotNull CCYaml instance;
+    private @NotNull Map<File, YamlConfiguration> fileHashMap;
+    private @Nullable File folder;
 
-    @Setter(AccessLevel.PRIVATE)
-    @Getter(AccessLevel.PRIVATE)
-    private Map<File, YamlConfiguration> fileHashMap;
-
-    public AbstractFolderYamlManager(CCYaml instance) {
+    public AbstractFolderYamlManager(@NotNull CCYaml instance) {
         this.instance = instance;
+        this.fileHashMap = new HashMap<>();
     }
 
     /**
@@ -41,8 +40,10 @@ public abstract class AbstractFolderYamlManager {
      *
      * @return 文件夹文件实例
      */
-    public File getFolder() {
-        return new File(this.getInstance().getParent(), this.filePath());
+    public @NotNull File getFolder() {
+        if (this.folder == null)
+            this.folder = new File(this.getInstance().getParent(), this.filePath());
+        return this.folder;
     }
 
     /**
@@ -71,7 +72,7 @@ public abstract class AbstractFolderYamlManager {
         for (File file : this.getInstance().getFileManager().listFiles(this.getFolder())) {
             fileHashMap.put(file, YamlConfiguration.loadConfiguration(file));
         }
-        this.setFileHashMap(fileHashMap);
+        this.fileHashMap = fileHashMap;
     }
 
     /**
@@ -79,7 +80,7 @@ public abstract class AbstractFolderYamlManager {
      *
      * @return 文件实例列表
      */
-    public Set<File> getFileList() {
+    public @NotNull Set<File> getFileList() {
         return this.getFileHashMap().keySet();
     }
 
@@ -88,7 +89,7 @@ public abstract class AbstractFolderYamlManager {
      *
      * @return 配置实例实例列表
      */
-    public Collection<YamlConfiguration> getDataList() {
+    public @NotNull Collection<YamlConfiguration> getDataList() {
         return this.getFileHashMap().values();
     }
 
@@ -98,8 +99,7 @@ public abstract class AbstractFolderYamlManager {
      * @param file 文件实例
      * @return 配置实例
      */
-    public YamlConfiguration getData(File file) {
-        if (file == null) return null;
+    public @Nullable YamlConfiguration getData(@NotNull File file) {
         return this.getFileHashMap().get(file);
     }
 
@@ -109,8 +109,7 @@ public abstract class AbstractFolderYamlManager {
      * @param path 文件路径
      * @return 配置实例
      */
-    public YamlConfiguration getData(String path) {
-        if (path == null) return null;
+    public @Nullable YamlConfiguration getData(@NotNull String path) {
         return this.getData(new File(this.getFolder(), path));
     }
 }

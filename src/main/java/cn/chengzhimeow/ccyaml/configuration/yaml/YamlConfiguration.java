@@ -2,6 +2,8 @@ package cn.chengzhimeow.ccyaml.configuration.yaml;
 
 import cn.chengzhimeow.ccyaml.configuration.MemoryConfiguration;
 import cn.chengzhimeow.ccyaml.configuration.SectionData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -16,13 +18,13 @@ import java.util.*;
 
 @SuppressWarnings("unused")
 public class YamlConfiguration extends MemoryConfiguration {
-    public final LoaderOptions loaderOptions;
-    public final DumperOptions dumperOptions;
-    private final YamlConstructor constructor;
-    private final YamlRepresenter representer;
-    private final Yaml yaml;
+    public final @NotNull LoaderOptions loaderOptions;
+    public final @NotNull DumperOptions dumperOptions;
+    private final @NotNull YamlConstructor constructor;
+    private final @NotNull YamlRepresenter representer;
+    private final @NotNull Yaml yaml;
 
-    public YamlConfiguration(LoaderOptions loaderOptions, DumperOptions dumperOptions, YamlConstructor constructor, YamlRepresenter representer) {
+    public YamlConfiguration(@NotNull LoaderOptions loaderOptions, @NotNull DumperOptions dumperOptions, @NotNull YamlConstructor constructor, @NotNull YamlRepresenter representer) {
         super(null, "");
 
         this.loaderOptions = loaderOptions;
@@ -33,23 +35,23 @@ public class YamlConfiguration extends MemoryConfiguration {
         this.yaml = new Yaml(this.constructor, this.representer, this.dumperOptions, this.loaderOptions);
     }
 
-    public YamlConfiguration(LoaderOptions loaderOptions, DumperOptions dumperOptions, YamlConstructor constructor) {
+    public YamlConfiguration(@NotNull LoaderOptions loaderOptions, @NotNull DumperOptions dumperOptions, @NotNull YamlConstructor constructor) {
         this(loaderOptions, dumperOptions, constructor, new YamlRepresenter(dumperOptions));
     }
 
-    public YamlConfiguration(LoaderOptions loaderOptions, DumperOptions dumperOptions, YamlRepresenter representer) {
+    public YamlConfiguration(@NotNull LoaderOptions loaderOptions, @NotNull DumperOptions dumperOptions, @NotNull YamlRepresenter representer) {
         this(loaderOptions, dumperOptions, new YamlConstructor(loaderOptions), representer);
     }
 
-    public YamlConfiguration(LoaderOptions loaderOptions, DumperOptions dumperOptions) {
+    public YamlConfiguration(@NotNull LoaderOptions loaderOptions, @NotNull DumperOptions dumperOptions) {
         this(loaderOptions, dumperOptions, new YamlConstructor(loaderOptions));
     }
 
-    public YamlConfiguration(DumperOptions dumperOptions) {
+    public YamlConfiguration(@NotNull DumperOptions dumperOptions) {
         this(YamlConfiguration.defaultLoaderOptions(), dumperOptions);
     }
 
-    public YamlConfiguration(LoaderOptions loaderOptions) {
+    public YamlConfiguration(@NotNull LoaderOptions loaderOptions) {
         this(loaderOptions, YamlConfiguration.defaultDumperOptions());
     }
 
@@ -60,7 +62,7 @@ public class YamlConfiguration extends MemoryConfiguration {
     /**
      * 默认加载配置实例
      */
-    public static LoaderOptions defaultLoaderOptions() {
+    public static @NotNull LoaderOptions defaultLoaderOptions() {
         LoaderOptions loaderOptions = new LoaderOptions();
         loaderOptions.setMaxAliasesForCollections(Integer.MAX_VALUE);
         loaderOptions.setCodePointLimit(Integer.MAX_VALUE);
@@ -73,7 +75,7 @@ public class YamlConfiguration extends MemoryConfiguration {
     /**
      * 默认加载输出实例
      */
-    public static DumperOptions defaultDumperOptions() {
+    public static @NotNull DumperOptions defaultDumperOptions() {
         DumperOptions dumperOptions = new DumperOptions();
         dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         dumperOptions.setWidth(Integer.MAX_VALUE);
@@ -91,7 +93,7 @@ public class YamlConfiguration extends MemoryConfiguration {
      * @param reader 配置文件读取实例
      * @return 加载完成的 YamlConfiguration 实例
      */
-    public static YamlConfiguration loadConfiguration(Reader reader) {
+    public static @NotNull YamlConfiguration loadConfiguration(@NotNull Reader reader) {
         YamlConfiguration configuration = new YamlConfiguration();
         configuration.load(reader);
         return configuration;
@@ -103,7 +105,7 @@ public class YamlConfiguration extends MemoryConfiguration {
      * @param inputStream 配置文件输入流实例
      * @return 加载完成的 YamlConfiguration 实例
      */
-    public static YamlConfiguration loadConfiguration(InputStream inputStream) {
+    public static @NotNull YamlConfiguration loadConfiguration(@NotNull InputStream inputStream) {
         YamlConfiguration configuration = new YamlConfiguration();
         configuration.load(inputStream);
         return configuration;
@@ -116,7 +118,7 @@ public class YamlConfiguration extends MemoryConfiguration {
      * @return 加载完成的 YamlConfiguration 实例
      * @throws IOException 如果文件读取失败
      */
-    public static YamlConfiguration loadConfiguration(File file) throws IOException {
+    public static @NotNull YamlConfiguration loadConfiguration(@NotNull File file) throws IOException {
         YamlConfiguration configuration = new YamlConfiguration();
         configuration.load(file);
         return configuration;
@@ -127,7 +129,7 @@ public class YamlConfiguration extends MemoryConfiguration {
      *
      * @param reader 配置文件读取实例
      */
-    public void load(Reader reader) {
+    public void load(@NotNull Reader reader) {
         MappingNode node = (MappingNode) this.yaml.compose(reader);
         if (node != null) this.data = this.mappingNodeToSectionData(node);
     }
@@ -137,7 +139,7 @@ public class YamlConfiguration extends MemoryConfiguration {
      *
      * @param inputStream 配置文件输入流实例
      */
-    public void load(InputStream inputStream) {
+    public void load(@NotNull InputStream inputStream) {
         try (InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
             this.load(reader);
         } catch (IOException e) {
@@ -151,7 +153,7 @@ public class YamlConfiguration extends MemoryConfiguration {
      * @param file 配置文件文件实例
      * @throws IOException 如果文件读取失败
      */
-    public void load(File file) throws IOException {
+    public void load(@NotNull File file) throws IOException {
         if (!file.exists()) throw new FileNotFoundException("找不到文件: " + file.getPath());
 
         try (FileInputStream fis = new FileInputStream(file)) {
@@ -165,11 +167,12 @@ public class YamlConfiguration extends MemoryConfiguration {
      * @param file 目标文件实例
      * @throws IOException 如果文件写入失败
      */
-    public void save(File file) throws IOException {
+    public void save(@NotNull File file) throws IOException {
         File parent = file.getParentFile();
         if (parent != null) Files.createDirectories(parent.toPath());
 
         SectionData sectionData = this.data;
+        assert sectionData.getData() != null;
         // noinspection unchecked
         MappingNode node = this.mapToMappingNode((Map<String, SectionData>) sectionData.getData());
 
@@ -202,7 +205,7 @@ public class YamlConfiguration extends MemoryConfiguration {
      * @param collection 集合实例
      * @return 结果
      */
-    private boolean isNotNullAndEmpty(Collection<?> collection) {
+    private boolean isNotNullAndEmpty(@Nullable Collection<?> collection) {
         return collection == null || collection.isEmpty();
     }
 
@@ -212,7 +215,7 @@ public class YamlConfiguration extends MemoryConfiguration {
      * @param comments CommentLine 列表
      * @return 字符串注释列表
      */
-    private List<String> getCommentLines(List<CommentLine> comments) {
+    private @NotNull List<String> getCommentLines(@NotNull List<CommentLine> comments) {
         if (this.isNotNullAndEmpty(comments)) return new ArrayList<>();
 
         List<String> lines = new ArrayList<>();
@@ -233,7 +236,7 @@ public class YamlConfiguration extends MemoryConfiguration {
      * @param commentType 注释类型 (BLOCK, IN_LINE)
      * @return CommentLine 列表
      */
-    private List<CommentLine> getCommentLines(List<String> comments, CommentType commentType) {
+    private @NotNull List<CommentLine> getCommentLines(@NotNull List<String> comments, @NotNull CommentType commentType) {
         if (this.isNotNullAndEmpty(comments)) return new ArrayList<>();
 
         List<CommentLine> lines = new ArrayList<>();
@@ -255,7 +258,7 @@ public class YamlConfiguration extends MemoryConfiguration {
      * @param root MappingNode 根节点
      * @return 转换后的 SectionData
      */
-    private SectionData mappingNodeToSectionData(MappingNode root) {
+    private @NotNull SectionData mappingNodeToSectionData(@Nullable MappingNode root) {
         Map<String, SectionData> map = new LinkedHashMap<>();
         if (root == null) return new SectionData(map);
 
@@ -298,7 +301,7 @@ public class YamlConfiguration extends MemoryConfiguration {
      * @param map 包含 SectionData 的 Map
      * @return 转换后的 MappingNode
      */
-    private MappingNode mapToMappingNode(Map<String, SectionData> map) {
+    private @NotNull MappingNode mapToMappingNode(@NotNull Map<String, SectionData> map) {
         List<NodeTuple> tupleList = new ArrayList<>();
 
         for (Map.Entry<String, SectionData> entry : map.entrySet()) {
@@ -313,16 +316,15 @@ public class YamlConfiguration extends MemoryConfiguration {
 
             // 应用注释
             List<String> commentList = sectionData.getCommentList();
-            if (commentList == null || commentList.isEmpty()) keyNode.setBlockComments(null);
+            if (commentList.isEmpty()) keyNode.setBlockComments(null);
             else keyNode.setBlockComments(this.getCommentLines(commentList, CommentType.BLOCK));
 
             List<String> inlineCommentList = sectionData.getInlineCommentList();
             if (valueNode instanceof MappingNode || valueNode instanceof SequenceNode)
-                if (inlineCommentList == null || inlineCommentList.isEmpty()) keyNode.setInLineComments(null);
+                if (inlineCommentList.isEmpty()) keyNode.setInLineComments(null);
                 else keyNode.setInLineComments(this.getCommentLines(inlineCommentList, CommentType.IN_LINE));
-            else
-                if (inlineCommentList == null || inlineCommentList.isEmpty()) valueNode.setInLineComments(null);
-                else valueNode.setInLineComments(this.getCommentLines(inlineCommentList, CommentType.IN_LINE));
+            else if (inlineCommentList.isEmpty()) valueNode.setInLineComments(null);
+            else valueNode.setInLineComments(this.getCommentLines(inlineCommentList, CommentType.IN_LINE));
 
             tupleList.add(new NodeTuple(keyNode, valueNode));
         }

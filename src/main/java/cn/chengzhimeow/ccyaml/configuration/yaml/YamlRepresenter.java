@@ -1,6 +1,7 @@
 package cn.chengzhimeow.ccyaml.configuration.yaml;
 
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.Tag;
@@ -13,7 +14,7 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class YamlRepresenter extends Representer {
     @Getter
-    private final List<Integer> foldLineList = new ArrayList<>();
+    private final @NotNull List<Integer> foldLineList = new ArrayList<>();
 
     public YamlRepresenter(DumperOptions options) {
         super(options);
@@ -31,11 +32,12 @@ public class YamlRepresenter extends Representer {
         @Override
         public Node representData(Object data) {
             YamlStringSectionData styledString = (YamlStringSectionData) data;
-            if (styledString.value().getScalarStyle() == DumperOptions.ScalarStyle.FOLDED) {
+            String value = styledString.getValue();
+
+            if (value != null && styledString.value().getScalarStyle() == DumperOptions.ScalarStyle.FOLDED) {
                 this.representer.getFoldLineList().add(styledString.value().getStartMark().getLine());
-                return this.representer.representScalar(Tag.STR, styledString.getValue().replace(" ", "\n"), DumperOptions.ScalarStyle.LITERAL);
-            }
-            return this.representer.representScalar(Tag.STR, styledString.getValue(), styledString.value().getScalarStyle());
+                return this.representer.representScalar(Tag.STR, value.replace(" ", "\n"), DumperOptions.ScalarStyle.LITERAL);
+            } else return this.representer.representScalar(Tag.STR, value, styledString.value().getScalarStyle());
         }
     }
 }

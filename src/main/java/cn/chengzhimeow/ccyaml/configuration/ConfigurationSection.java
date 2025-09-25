@@ -1,5 +1,8 @@
 package cn.chengzhimeow.ccyaml.configuration;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +16,7 @@ public interface ConfigurationSection {
      * @param path 相对路径
      * @return 完整路径
      */
-    String getKey(String path);
+    @NotNull String getKey(String path);
 
     /**
      * 设定指定路径的值
@@ -21,7 +24,7 @@ public interface ConfigurationSection {
      * @param path  值的路径
      * @param value 要设定的值, 如果为 null 则会移除该键
      */
-    void set(String path, Object value);
+    void set(@NotNull String path, @Nullable Object value);
 
     /**
      * 获取指定路径的 SectionData 对象
@@ -29,15 +32,15 @@ public interface ConfigurationSection {
      * @param path 路径
      * @return 包含数据和注释的 SectionData 对象, 如果路径不存在则返回一个空的 SectionData
      */
-    SectionData getSectionData(String path);
+    @NotNull SectionData getSectionData(String path);
 
     /**
      * 设定指定路径的块注释 (在键值对上方)
      *
      * @param path        路径
-     * @param commentList 注释列表, 列表中的 null 或空字符串会变为空行
+     * @param commentList 注释列表
      */
-    default void setCommentList(String path, List<String> commentList) {
+    default void setCommentList(@NotNull String path, @NotNull List<String> commentList) {
         this.getSectionData(path).setCommentList(commentList);
     }
 
@@ -47,18 +50,8 @@ public interface ConfigurationSection {
      * @param path 路径
      * @return 注释列表
      */
-    default List<String> getCommentList(String path) {
+    default @NotNull List<String> getCommentList(@NotNull String path) {
         return this.getSectionData(path).getCommentList();
-    }
-
-    /**
-     * 获取指定路径的行内注释 (在键值对后方)
-     *
-     * @param path 路径
-     * @return 行内注释列表
-     */
-    default List<String> getInlineCommentList(String path) {
-        return this.getSectionData(path).getInlineCommentList();
     }
 
     /**
@@ -67,8 +60,18 @@ public interface ConfigurationSection {
      * @param path        路径
      * @param commentList 行内注释列表
      */
-    default void setInlineCommentList(String path, List<String> commentList) {
+    default void setInlineCommentList(@NotNull String path, @NotNull List<String> commentList) {
         this.getSectionData(path).setInlineCommentList(commentList);
+    }
+
+    /**
+     * 获取指定路径的行内注释 (在键值对后方)
+     *
+     * @param path 路径
+     * @return 行内注释列表
+     */
+    default @NotNull List<String> getInlineCommentList(@NotNull String path) {
+        return this.getSectionData(path).getInlineCommentList();
     }
 
     /**
@@ -79,7 +82,7 @@ public interface ConfigurationSection {
      * @param <T>   目标类型
      * @return 转换后的值, 如果路径不存在或类型不匹配可能返回 null 或抛出 ClassCastException
      */
-    default <T> T get(String path, Class<T> clazz) {
+    default @Nullable <T> T get(@NotNull String path, @NotNull Class<T> clazz) {
         Object data = this.getSectionData(path).getData();
         if (data == null) return null;
         if (data instanceof StringSectionData str && clazz == String.class) return clazz.cast(str.getValue());
@@ -92,7 +95,7 @@ public interface ConfigurationSection {
      * @param path 路径
      * @return Object 值, 如果不存在则为 null
      */
-    default Object get(String path) {
+    default @Nullable Object get(@NotNull String path) {
         return this.get(path, Object.class);
     }
 
@@ -102,7 +105,7 @@ public interface ConfigurationSection {
      * @param path 路径
      * @return 如果路径存在值则为 true, 否则为 false
      */
-    default boolean has(String path) {
+    default boolean has(@NotNull String path) {
         return this.getSectionData(path).getData() != null;
     }
 
@@ -113,7 +116,7 @@ public interface ConfigurationSection {
      * @param def  默认值
      * @return 字符串值, 如果不存在则返回默认值
      */
-    default String getString(String path, String def) {
+    default @Nullable String getString(@NotNull String path, @Nullable String def) {
         String value = this.get(path, String.class);
         return value != null ? value : def;
     }
@@ -124,7 +127,7 @@ public interface ConfigurationSection {
      * @param path 路径
      * @return 字符串值, 如果不存在则返回 null
      */
-    default String getString(String path) {
+    default @Nullable String getString(@NotNull String path) {
         return this.getString(path, null);
     }
 
@@ -135,7 +138,7 @@ public interface ConfigurationSection {
      * @param def  默认值
      * @return 整数值, 如果不存在则返回默认值
      */
-    default int getInt(String path, int def) {
+    default @Nullable Integer getInt(@NotNull String path, @Nullable Integer def) {
         Integer value = this.get(path, Integer.class);
         return value != null ? value : def;
     }
@@ -146,7 +149,8 @@ public interface ConfigurationSection {
      * @param path 路径
      * @return 整数值, 如果不存在则返回 0
      */
-    default int getInt(String path) {
+    @SuppressWarnings("DataFlowIssue")
+    default int getInt(@NotNull String path) {
         return this.getInt(path, 0);
     }
 
@@ -157,7 +161,7 @@ public interface ConfigurationSection {
      * @param def  默认值
      * @return 长整数值, 如果不存在则返回默认值
      */
-    default long getLong(String path, long def) {
+    default @Nullable Long getLong(@NotNull String path, @Nullable Long def) {
         Long value = this.get(path, Long.class);
         return value != null ? value : def;
     }
@@ -168,7 +172,8 @@ public interface ConfigurationSection {
      * @param path 路径
      * @return 长整数值, 如果不存在则返回 0L
      */
-    default long getLong(String path) {
+    @SuppressWarnings("DataFlowIssue")
+    default long getLong(@NotNull String path) {
         return this.getLong(path, 0L);
     }
 
@@ -179,7 +184,7 @@ public interface ConfigurationSection {
      * @param def  默认值
      * @return 布尔值, 如果不存在则返回默认值
      */
-    default boolean getBoolean(String path, boolean def) {
+    default @Nullable Boolean getBoolean(@NotNull String path, @Nullable Boolean def) {
         Boolean value = this.get(path, Boolean.class);
         return value != null ? value : def;
     }
@@ -190,7 +195,8 @@ public interface ConfigurationSection {
      * @param path 路径
      * @return 布尔值, 如果不存在则返回 false
      */
-    default boolean getBoolean(String path) {
+    @SuppressWarnings("DataFlowIssue")
+    default boolean getBoolean(@NotNull String path) {
         return this.getBoolean(path, false);
     }
 
@@ -201,7 +207,7 @@ public interface ConfigurationSection {
      * @param def  默认值
      * @return 双精度浮点数值, 如果不存在则返回默认值
      */
-    default double getDouble(String path, double def) {
+    default @Nullable Double getDouble(@NotNull String path, @Nullable Double def) {
         Double value = this.get(path, Double.class);
         return value != null ? value : def;
     }
@@ -212,7 +218,8 @@ public interface ConfigurationSection {
      * @param path 路径
      * @return 双精度浮点数值, 如果不存在则返回 0.0
      */
-    default double getDouble(String path) {
+    @SuppressWarnings("DataFlowIssue")
+    default double getDouble(@NotNull String path) {
         return this.getDouble(path, 0.0);
     }
 
@@ -223,7 +230,7 @@ public interface ConfigurationSection {
      * @param def  默认值
      * @return 单精度浮点数值, 如果不存在则返回默认值
      */
-    default float getFloat(String path, float def) {
+    default @Nullable Float getFloat(@NotNull String path, @Nullable Float def) {
         Float value = this.get(path, Float.class);
         return value != null ? value : def;
     }
@@ -234,7 +241,8 @@ public interface ConfigurationSection {
      * @param path 路径
      * @return 单精度浮点数值, 如果不存在则返回 0.0f
      */
-    default float getFloat(String path) {
+    @SuppressWarnings("DataFlowIssue")
+    default float getFloat(@NotNull String path) {
         return this.getFloat(path, 0.0f);
     }
 
@@ -248,7 +256,7 @@ public interface ConfigurationSection {
      * @return 列表值, 如果不存在则返回默认列表
      */
     @SuppressWarnings("unchecked")
-    default <T> List<T> getList(String path, List<T> def, Class<T> clazz) {
+    default @Nullable <T> List<T> getList(@NotNull String path, @Nullable List<T> def, @NotNull Class<T> clazz) {
         List<T> list = this.get(path, List.class);
         if (list == null) return def;
         if (list.isEmpty()) return list;
@@ -269,7 +277,8 @@ public interface ConfigurationSection {
      * @param <T>   列表元素的类型
      * @return 列表值, 如果不存在则返回一个空列表
      */
-    default <T> List<T> getList(String path, Class<T> clazz) {
+    @SuppressWarnings("DataFlowIssue")
+    default @NotNull <T> List<T> getList(@NotNull String path, @NotNull Class<T> clazz) {
         return this.getList(path, new ArrayList<>(), clazz);
     }
 
@@ -280,7 +289,7 @@ public interface ConfigurationSection {
      * @param def  默认列表
      * @return 字符串列表, 如果不存在则返回默认列表
      */
-    default List<String> getStringList(String path, List<String> def) {
+    default @Nullable List<String> getStringList(@NotNull String path, @Nullable List<String> def) {
         return this.getList(path, def, String.class);
     }
 
@@ -290,7 +299,8 @@ public interface ConfigurationSection {
      * @param path 路径
      * @return 字符串列表, 如果不存在则返回一个空列表
      */
-    default List<String> getStringList(String path) {
+    @SuppressWarnings("DataFlowIssue")
+    default @NotNull List<String> getStringList(String path) {
         return this.getStringList(path, new ArrayList<>());
     }
 
@@ -301,7 +311,7 @@ public interface ConfigurationSection {
      * @param def  默认列表
      * @return 整数列表, 如果不存在则返回默认列表
      */
-    default List<Integer> getIntList(String path, List<Integer> def) {
+    default @Nullable List<Integer> getIntList(@NotNull String path, @Nullable List<Integer> def) {
         return this.getList(path, def, Integer.class);
     }
 
@@ -311,7 +321,8 @@ public interface ConfigurationSection {
      * @param path 路径
      * @return 整数列表, 如果不存在则返回一个空列表
      */
-    default List<Integer> getIntList(String path) {
+    @SuppressWarnings("DataFlowIssue")
+    default @NotNull List<Integer> getIntList(@NotNull String path) {
         return this.getIntList(path, new ArrayList<>());
     }
 
@@ -322,7 +333,7 @@ public interface ConfigurationSection {
      * @param def  默认列表
      * @return 布尔值列表, 如果不存在则返回默认列表
      */
-    default List<Boolean> getBooleanList(String path, List<Boolean> def) {
+    default @Nullable List<Boolean> getBooleanList(@NotNull String path, @Nullable List<Boolean> def) {
         return this.getList(path, def, Boolean.class);
     }
 
@@ -332,7 +343,8 @@ public interface ConfigurationSection {
      * @param path 路径
      * @return 布尔值列表, 如果不存在则返回一个空列表
      */
-    default List<Boolean> getBooleanList(String path) {
+    @SuppressWarnings("DataFlowIssue")
+    default @NotNull List<Boolean> getBooleanList(@NotNull String path) {
         return this.getBooleanList(path, new ArrayList<>());
     }
 
@@ -343,7 +355,7 @@ public interface ConfigurationSection {
      * @param def  默认列表
      * @return 双精度浮点数列表, 如果不存在则返回默认列表
      */
-    default List<Double> getDoubleList(String path, List<Double> def) {
+    default @Nullable List<Double> getDoubleList(@NotNull String path, @Nullable List<Double> def) {
         return this.getList(path, def, Double.class);
     }
 
@@ -353,7 +365,8 @@ public interface ConfigurationSection {
      * @param path 路径
      * @return 双精度浮点数列表, 如果不存在则返回一个空列表
      */
-    default List<Double> getDoubleList(String path) {
+    @SuppressWarnings("DataFlowIssue")
+    default @NotNull List<Double> getDoubleList(@NotNull String path) {
         return this.getDoubleList(path, new ArrayList<>());
     }
 
@@ -364,7 +377,7 @@ public interface ConfigurationSection {
      * @param def  默认列表
      * @return 单精度浮点数列表, 如果不存在则返回默认列表
      */
-    default List<Float> getFloatList(String path, List<Float> def) {
+    default @Nullable List<Float> getFloatList(@NotNull String path, @Nullable List<Float> def) {
         return this.getList(path, def, Float.class);
     }
 
@@ -374,7 +387,8 @@ public interface ConfigurationSection {
      * @param path 路径
      * @return 单精度浮点数列表, 如果不存在则返回一个空列表
      */
-    default List<Float> getFloatList(String path) {
+    @SuppressWarnings("DataFlowIssue")
+    default @NotNull List<Float> getFloatList(@NotNull String path) {
         return this.getFloatList(path, new ArrayList<>());
     }
 
@@ -384,14 +398,14 @@ public interface ConfigurationSection {
      * @param deep 是否深度获取 (即包含所有子节点的键)
      * @return 键的集合
      */
-    Set<String> getKeys(boolean deep);
+    @NotNull Set<String> getKeys(boolean deep);
 
     /**
      * 获取当前配置节点下的所有直接子键 (非深度)
      *
      * @return 键的集合
      */
-    default Set<String> getKeys() {
+    default @NotNull Set<String> getKeys() {
         return this.getKeys(false);
     }
 
@@ -401,7 +415,7 @@ public interface ConfigurationSection {
      * @param path 路径
      * @return 子配置节点, 如果路径不存在或不是一个配置节点则返回 null
      */
-    default ConfigurationSection getConfigurationSection(String path) {
+    default @Nullable ConfigurationSection getConfigurationSection(@NotNull String path) {
         SectionData data = this.getSectionData(path);
         if (!(data.getData() instanceof Map)) return null;
 
@@ -417,8 +431,9 @@ public interface ConfigurationSection {
      * @return 配置节点列表
      */
     @SuppressWarnings("rawtypes")
-    default List<ConfigurationSection> getConfigurationSectionList(String path) {
+    default @NotNull List<ConfigurationSection> getConfigurationSectionList(@NotNull String path) {
         List<Map> maps = this.getList(path, new ArrayList<>(), Map.class);
+        assert maps != null;
 
         List<ConfigurationSection> result = new ArrayList<>();
         for (int i = 0; i < maps.size(); i++) {

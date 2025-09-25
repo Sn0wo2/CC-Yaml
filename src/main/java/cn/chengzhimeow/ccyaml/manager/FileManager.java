@@ -3,6 +3,7 @@ package cn.chengzhimeow.ccyaml.manager;
 import cn.chengzhimeow.ccyaml.CCYaml;
 import cn.chengzhimeow.ccyaml.exception.ResourceException;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +25,7 @@ public record FileManager(CCYaml instance) {
      * @param path 路径
      * @return 格式化后的路径
      */
-    public String formatPath(String path) {
+    public @NotNull String formatPath(@NotNull String path) {
         return path.replace("\\", "/");
     }
 
@@ -36,7 +37,7 @@ public record FileManager(CCYaml instance) {
      * @param replace  替换文件
      */
     @SneakyThrows
-    private void copyFile(InputStream in, Path filePath, boolean replace) {
+    private void copyFile(@NotNull InputStream in, @NotNull Path filePath, boolean replace) {
         if (Files.exists(filePath) && !replace) {
             return;
         }
@@ -53,7 +54,7 @@ public record FileManager(CCYaml instance) {
      * @param replace            替换文件
      */
     @SneakyThrows
-    public void saveFolderResource(String resourceFolderPath, String fileFolderPath, boolean replace) {
+    public void saveFolderResource(@NotNull String resourceFolderPath, @NotNull String fileFolderPath, boolean replace) {
         resourceFolderPath = this.formatPath(resourceFolderPath);
         resourceFolderPath = resourceFolderPath.endsWith("/") ? resourceFolderPath : resourceFolderPath + "/";
         fileFolderPath = this.formatPath(fileFolderPath);
@@ -93,7 +94,7 @@ public record FileManager(CCYaml instance) {
      * @param replace      替换文件
      */
     @SneakyThrows
-    public void saveResource(String resourcePath, String filePath, boolean replace) {
+    public void saveResource(@NotNull String resourcePath, @NotNull String filePath, boolean replace) {
         resourcePath = this.formatPath(resourcePath);
         filePath = this.formatPath(filePath);
 
@@ -117,7 +118,7 @@ public record FileManager(CCYaml instance) {
      * @param directory 目录实例
      * @return 文件实例列表
      */
-    public List<File> listFiles(File directory) {
+    public List<File> listFiles(@NotNull File directory) {
         if (directory == null || !directory.exists() || !directory.isDirectory()) {
             return new ArrayList<>();
         }
